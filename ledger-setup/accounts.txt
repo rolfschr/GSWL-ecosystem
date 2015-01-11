@@ -1,0 +1,5 @@
+account Assets:Checking
+account Equity:OpeningBalances
+account Expenses:Food:Groceries
+account Expenses:Unknown
+account Income:Salary
