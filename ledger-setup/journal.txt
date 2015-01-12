@@ -20,7 +20,8 @@
     Expenses:Unknown                        $150.00
     Assets:Checking
 
-; Paying food with cash.
+; Paying food with cash: Moving money from the Expenses:Unknown
+; account to the food account.
 2016/02/15 * Shoping
     Expenses:Food:Groceries                 $23.00
     Expenses:Unknown
