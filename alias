@@ -6,7 +6,7 @@
 # --explicit        : 
 # --price-db FILE   : Specify the location of the price entry data file.
 # --market          : Report last known market value.
-# --wide            : Cause the default register report to assume more columns on the terminal.
+# --wide            : Cause the default register report to assume a wide screen.
 
 LEDGERARGS="--pedantic --check-payees --price-db prices.txt --market"
 alias myledger="ledger -f main.txt ${LEDGERARGS}"

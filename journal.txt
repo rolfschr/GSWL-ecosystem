@@ -7,10 +7,10 @@
 ; The money comes from the employer and goes into the bank account.
 2016/01/31 * Salary
     Income:Salary                          -$1337
-    Assets:Checking
+    Assets:Checking                         $1337
 
 ; Groceries were paid using a card so the money comes directly from the bank account.
-2016/02/15 * Shoping
+2016/02/15 * Shopping
     Expenses:Food:Groceries                 $42.00
     Assets:Checking
 
@@ -22,6 +22,6 @@
 
 ; Paying food with cash: Moving money from the Expenses:Unknown
 ; account to the food account.
-2016/02/15 * Shoping
+2016/02/15 * Shopping
     Expenses:Food:Groceries                 $23.00
     Expenses:Unknown
