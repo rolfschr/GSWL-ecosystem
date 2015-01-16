@@ -1,0 +1,17 @@
+; This file lists all cash transactions that happened *after* the last
+; journal update. Once this data has been added to journal, this files
+; is emptied.
+; If you don't really care about exact dates, you may sum up all real
+; transactions into one Ledger transaction.
+
+2016/03/10 * Swimming
+    Expenses:Sports:Swimming                $10.00
+    Expenses:Unknown
+
+2016/03/13 * Cinema
+    Expenses:Cinema                         $15.00
+    Expenses:Unknown
+
+2016/03/18 * Tails of the City
+    Expenses:Books                          $5.00
+    Expenses:Unknown
