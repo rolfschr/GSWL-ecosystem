@@ -1,5 +1,5 @@
 ; This file lists all cash transactions that happened *after* the last
-; journal update. Once this data has been added to journal, this files
+; journal update. Once this data has been added to journal, this file
 ; is emptied.
 ; If you don't really care about exact dates, you may sum up all real
 ; transactions into one Ledger transaction.
