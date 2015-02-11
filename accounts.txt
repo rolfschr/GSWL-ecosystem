@@ -3,6 +3,7 @@ account Equity:OpeningBalances
 account Expenses:Books
 account Expenses:Cinema
 account Expenses:Food:Groceries
+ payee ^MegaSuperMarket
 account Expenses:Sports:Swimming
 account Expenses:Unknown
 account Income:Salary
