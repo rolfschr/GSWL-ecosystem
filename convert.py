@@ -1,9 +1,4 @@
 #!/usr/bin/python
-"""
-Usage:
-    preconvert.py <account> <infile>
-
-"""
 
 import re
 import sys
@@ -19,11 +14,21 @@ CONFIG_FILE = 'bankaccounts.yml'
 OUTFILE = '/tmp/out.csv'
 
 
+def usage():
+    s = """
+Usage:
+    {} <account> <infile>
+""".format(__file__)
+    print(s)
+    sys.exit(1)
+
+
 def ignore_transactions(lines, patterns):
     def match(line, patterns):
-        for pattern in patterns:
-            if re.match(pattern, line):
-                return True
+        if (patterns is not None):
+            for pattern in patterns:
+                if re.match(pattern, line):
+                    return True
         return False
 
     ret = []
@@ -36,16 +41,16 @@ def ignore_transactions(lines, patterns):
 def modify_transactions(lines, mods):
     ret = []
     for line in lines:
-        for mod in mods:
-            line = re.sub(mod[0], mod[1], line)
+        if (mods is not None):
+            for mod in mods:
+                line = re.sub(mod[0], mod[1], line)
         ret.append(line)
     return ret
 
 
 def main(argv=None):
-    if (argv is None or len(argv) < 4):
-        print __name__
-        sys.exit(1)
+    if (argv is None or len(argv) < 3):
+        usage()
     account = argv[1]
     csv_filename = argv[2]
     f = file(CONFIG_FILE, 'r')
@@ -69,15 +74,18 @@ def main(argv=None):
         cmd += ' --input-date-format "{}"'.format(acfg['date_format'])
         cmd += ' --account {}'.format(account)
         cmd += ' {}'.format(acfg['ledger_args'])
-        cmd += ' ' # expenses:unkown
-        cmd += ' ' # add currcency
-        #| sed -e "s/\(^\s\+.*[0-9]\)$/\1  $CURRENCY/g" -e "s/Expenses:Unknown/Ausgaben:Unbekannt/g"
+        cmd += ' | sed -e "s/\(^\s\+.*[0-9]\)$/\\1  {}/g"'.\
+            format(acfg['currency'])
+        try:
+            cmd += ' | sed -e "s/Expenses:Unknown/{}/g"'.\
+                format(acfg['expenses_unknown'])
+        except:
+            pass
         # cmd += ' | grep H'
-        print(cmd)
 
         # directly call in subshell
         os.system(cmd)
-        #os.remove(OUTFILE)
+        os.remove(OUTFILE)
 
 if __name__ == '__main__':
     main(sys.argv)
