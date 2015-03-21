@@ -1,0 +1,14 @@
+# Each paragraph consists of explanations ('# ...') and the cmd itself (last line).
+
+# show the balance of last month
+led --period "last month" bal
+
+# show expenses/income from last month
+led bal ^Eink ^Ausg
+
+# show net gain of last 6 months
+# group by month (--monthly or -M)
+led -M -n reg Assets --period 'last 6 months'
+
+# asdfasdf
+led bal Assets
