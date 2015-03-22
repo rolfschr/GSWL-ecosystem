@@ -4,11 +4,15 @@
 led --period "last month" bal
 
 # show expenses/income from last month
-led bal ^Eink ^Ausg
+led --period "last month" bal ^Expenses ^Income
 
-# show net gain of last 6 months
+# show expenses of last 6 months
 # group by month (--monthly or -M)
-led -M -n reg Assets --period 'last 6 months'
+# collapse transcations with multiple postings (--collapse or -n)
+# average (--average or -A)
+led --period "last 6 month" -M -n -A reg ^Expenses
 
-# asdfasdf
-led bal Assets
+# show net gain of last 6 months (>0 -> gain; <0 -> loss)
+# group by month (--monthly or -M)
+# collapse transcations with multiple postings (--collapse or -n)
+led --period 'last 6 months' -M -n reg Assets Receivables
