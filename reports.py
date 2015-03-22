@@ -14,7 +14,11 @@ import subprocess
 REPORT_FILE = 'reports.txt'
 TEMP_SCRIPT_FILE = '/tmp/.ledgerscript.sh'
 
+
 def getchar():
+    """
+    Get a single character from stdin.
+    """
     # from http://code.activestate.com/recipes/134892/
     fd = sys.stdin.fileno()
     old_settings = termios.tcgetattr(fd)
@@ -27,6 +31,9 @@ def getchar():
 
 
 def makescript(cmd):
+    """
+    Make a helper script which eases usage of the ecosystem.
+    """
     out = ""
     out += '#!/bin/bash\n'
     out += 'shopt -s expand_aliases\n'
@@ -38,6 +45,9 @@ def makescript(cmd):
 
 
 def show((expl, cmd)):
+    """
+    Show one report from the report file.
+    """
     makescript(cmd)
     os.system('clear')
     print(expl)
@@ -67,12 +77,6 @@ def main(argv=None):
                 cmd = ''
                 expl = ''
 
-    cmd = 'bash -s "<<EOF\nsource alias\nled bal\nEOF"'
-    cmd = 'bash -c "source alias; top -n 1; led"'
-    #cmd = 'bash -c "shopt -s expand_aliases; . alias; top -n 1; led"'
-    cmd = 'bash -c "shopt -s expand_aliases; . alias; echo "asdf"; led bal"'
-    #subprocess.call(cmd, shell=True)
-    #return
     i = 0
     while True:
         show(reports[i])
