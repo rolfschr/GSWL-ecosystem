@@ -1,5 +1,8 @@
 #!/bin/bash
 
+THIS_DIR=$(dirname "$0") # needed for later
+
+# This is the main command to invoke Ledger.
 # --strict          : Abort if account, tag or commodity is unknown.
 # --pedantic        : Warn if account, tag or commodity is unknown.
 # --check-payees    : Warn/abort if payee is unknown.
@@ -7,11 +10,36 @@
 # --price-db FILE   : Specify the location of the price entry data file.
 # --market          : Report last known market value.
 # --wide            : Cause the default register report to assume a wide screen.
+# --flat            : Do not shouw accounts in a hierarchical tree
 # --pager=less"
-
 LEDGERARGS="--pedantic --check-payees --price-db prices.txt --market"
 alias led="ledger -f main.txt ${LEDGERARGS}"
 
+# This is used for conversion of CSV files only
+alias ledconv="${THIS_DIR}/convert.py"
 
 
 alias lmledgermake="git checkout journal.txt && ledger -f ./lm.txt ${LEDGERARGS} --sort "d" print > lm.tmp.txt && cat lm.tmp.txt >> journal.txt && less lm.tmp.txt"
+
+
+function exact () {
+    FILE=misc.tmp.txt
+    #ledger xact 2004/4/9 viva food 11 tips 2.50
+    X=$(led xact "$@")
+    echo "$X"
+    A=""
+    #if [[ "$SHELLL" =~ zsh ]]; then
+        read -q "A?Add to $FILE? [Y/n] "
+    #elif [[ "$SHELL" =~ bash ]]; then
+    #    echo "bash"
+    #fi
+    if [[ -z "${A}" ]]; then
+        echo "asdfadsf"
+        echo -e "\n$X" >> $FILE
+    fi
+
+    #read -p "Add to $FILE? [Y/n] "
+}
+
+
+#asdfasdfadsfasdf ueberschrieben last month lieber nicht
