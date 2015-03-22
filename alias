@@ -1,6 +1,8 @@
 #!/bin/bash
 
 THIS_DIR=$(dirname "$0") # needed for later
+THIS_MONTH=`date +'%b' | tr '[:upper:]' '[:lower:]'`
+LAST_MONTH=`date +'%b' -d 'last month' | tr '[:upper:]' '[:lower:]'`
 
 # This is the main command to invoke Ledger.
 # --strict          : Abort if account, tag or commodity is unknown.
@@ -14,6 +16,8 @@ THIS_DIR=$(dirname "$0") # needed for later
 # --pager=less"
 LEDGERARGS="--pedantic --check-payees --price-db prices.txt --market"
 alias led="ledger -f main.txt ${LEDGERARGS}"
+alias ledp="ledger -f main.txt ${LEDGERARGS} --pager=less"
+alias ledreports="${THIS_DIR}/reports.py"
 
 # This is used for conversion of CSV files only
 alias ledconv="${THIS_DIR}/convert.py"
@@ -41,5 +45,5 @@ function ledxact () {
 
 #asdfasdfadsfasdf ueberschrieben last month lieber nicht
 
-# Source the file in the curren working directory
+# Source the file in the current working directory
 source alias.local 2>/dev/null
