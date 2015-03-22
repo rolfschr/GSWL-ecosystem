@@ -22,24 +22,24 @@ alias ledconv="${THIS_DIR}/convert.py"
 alias lmledgermake="git checkout journal.txt && ledger -f ./lm.txt ${LEDGERARGS} --sort "d" print > lm.tmp.txt && cat lm.tmp.txt >> journal.txt && less lm.tmp.txt"
 
 
-function exact () {
+function ledxact () {
     FILE=misc.tmp.txt
     #ledger xact 2004/4/9 viva food 11 tips 2.50
     X=$(led xact "$@")
     echo "$X"
-    A=""
-    #if [[ "$SHELLL" =~ zsh ]]; then
-        read -q "A?Add to $FILE? [Y/n] "
-    #elif [[ "$SHELL" =~ bash ]]; then
-    #    echo "bash"
-    #fi
-    if [[ -z "${A}" ]]; then
-        echo "asdfadsf"
-        echo -e "\n$X" >> $FILE
+    if [[ "$SHELL" =~ ^.*zsh$ ]]; then
+        vared -p "Add to $FILE? [Y/n] " -c A
+    elif [[ "$SHELL" =~ ^.*bash$ ]]; then
+        read -e -p "Add to $FILE? [Y/n] " A
     fi
-
-    #read -p "Add to $FILE? [Y/n] "
+    if [[ -z "${A}" || "${A}" == "y" || "${A}" == "Y" ]]; then
+        echo -e "\n$X" >> $FILE
+        echo "Done."
+    fi
 }
 
 
 #asdfasdfadsfasdf ueberschrieben last month lieber nicht
+
+# Source the file in the curren working directory
+source alias.local 2>/dev/null
