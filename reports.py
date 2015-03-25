@@ -13,6 +13,7 @@ import subprocess
 
 REPORT_FILE = 'reports.txt'
 TEMP_SCRIPT_FILE = '/tmp/.ledgerscript.sh'
+THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 def getchar():
@@ -37,7 +38,7 @@ def makescript(cmd):
     out = ""
     out += '#!/bin/bash\n'
     out += 'shopt -s expand_aliases\n'
-    out += '. alias\n'
+    out += '. {}/alias\n'.format(THIS_DIR)
     out += '{}\n'.format(cmd)
     with open(TEMP_SCRIPT_FILE, 'w') as fh:
         fh.write(out)
