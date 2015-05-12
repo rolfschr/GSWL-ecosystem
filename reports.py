@@ -66,14 +66,15 @@ def main(argv=None):
     with open(filename, 'r') as fh:
         expl = ''
         cmd = ''
-        for line in fh.readlines()[2:]:  # skip header lines
+        lines = fh.readlines()[2:]  # skip header lines
+        for i, line in enumerate(lines):
             if (line.startswith('#')):
                 expl += line
             elif (not line.startswith('\n')):
-                # consider everything else as the cmd
-                cmd = line.strip()
+                # consider everything else till a blank line as the command
+                cmd += line
 
-            if (cmd):
+            if (cmd and lines[i + 1].startswith('\n')):
                 reports.append((expl.strip(), cmd))
                 cmd = ''
                 expl = ''
