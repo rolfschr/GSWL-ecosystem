@@ -62,12 +62,14 @@ def main(argv=None):
         acfg = cfg[account]
         with open(csv_filename) as csv_fh:
             lines = csv_fh.readlines()
+            lines = [re.sub(r'[^\x00-\x7F]+', '_', l) for l in lines]
             lines = lines[int(acfg['ignored_lines']):]
             lines = ignore_transactions(lines, acfg['ignored_transactions'])
             lines = modify_transactions(lines, acfg['modify_transactions'])
             with open(OUTFILE, "w") as output_fh:
                 output_fh.write(acfg['convert_header'] + '\n')
                 for line in lines:
+                    # print(line)
                     output_fh.write(line)
 
         cmd = 'ledger -f main.txt convert {}'.format(OUTFILE)
