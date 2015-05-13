@@ -1,8 +1,19 @@
 #!/bin/bash
 
-THIS_DIR=$(dirname "$0") # needed for later
-THIS_MONTH=`date +'%b' | tr '[:upper:]' '[:lower:]'`
-LAST_MONTH=`date +'%b' -d 'last month' | tr '[:upper:]' '[:lower:]'`
+LEDGER_ECOSYSTEM_DIR=$(dirname "$0") # needed for later
+
+# These variables are used in conjunction with the CSV files from the bank.
+# When the latter are named consistently (ex:"apr2044_bank1.csv,
+# may2044_bank1.csv") one can use simple aliases to always convert the latest
+# CSV files. (Assuming monthly updates in this case.)
+THIS_MONTH=$(date +'%b' | tr '[:upper:]' '[:lower:]') # "apr"
+LAST_MONTH=$(date +'%b' -d 'last month' | tr '[:upper:]' '[:lower:]') # "apr"
+THIS_YEAR=$(date +'%Y') # "2044"
+LAST_YEAR=$(date +'%Y' -d 'last year') # "2044"
+LAST_MONTHYEAR="${LAST_MONTH}${THIS_YEAR}"
+if [[ "$LAST_MONTH" == "dec" ]]; then
+    LAST_MONTHYEAR="${LAST_MONTH}${LAST_YEAR}"
+fi
 
 # This is the main command to invoke Ledger.
 # --strict          : Abort if account, tag or commodity is unknown.
@@ -17,10 +28,11 @@ LAST_MONTH=`date +'%b' -d 'last month' | tr '[:upper:]' '[:lower:]'`
 LEDGERARGS="--pedantic --check-payees --price-db prices.txt --market"
 alias led="ledger -f main.txt ${LEDGERARGS}"
 alias ledp="ledger -f main.txt ${LEDGERARGS} --pager=less"
-alias ledreports="${THIS_DIR}/reports.py"
+alias ledreports="${LEDGER_ECOSYSTEM_DIR}/reports.py"
+alias ledlm='led -p "last month"'
 
 # This is used for conversion of CSV files only
-alias ledconv="${THIS_DIR}/convert.py"
+alias ledconv="${LEDGER_ECOSYSTEM_DIR}/convert.py"
 
 
 alias lmledgermake="git checkout journal.txt && ledger -f ./lm.txt ${LEDGERARGS} --sort "d" print > lm.tmp.txt && cat lm.tmp.txt >> journal.txt && less lm.tmp.txt"
@@ -42,8 +54,24 @@ function ledxact () {
     fi
 }
 
-
-#asdfasdfadsfasdf ueberschrieben last month lieber nicht
+function nMonthsAgo () {
+    # helper method to get the name of month/year n months ago,
+    # e.g. if today is mar 2042, it yields "Mar 2041"
+    # todo return ?
+    echo "$(date +"%b %Y" -d "$1 months ago")"
+}
 
 # Source the file in the current working directory
+# This variable should contain the list of all the files to be added to the actual journal:
+TMP_LEDGER_FILES="" # filled by alias.local
 source alias.local 2>/dev/null
+
+# Once all CSV files are converted AND misc.tmp.txt CONTAINS MANUALLY ADDED
+# lEDGER JOURNAL ENTRIES, everything needs to be merged and appended to the
+# actual journal.
+TMP_LEDGER_FILES="includes.txt $TMP_LEDGER_FILES misc.tmp.txt"
+ATMPFILE="./tmp/lmall.tmp.txt" # used to store all postings from all tmp text files
+DTMPFILE="./tmp/lmsorted.tmp.txt" # used to store the same as above, but sorted by date
+# This alias merges all tmp Ledger files, sorts them by date, and appends them
+# to the main journal.txt:
+alias lmmake="cat $TMP_LEDGER_FILES >> $ATMPFILE 2>/dev/null;  git checkout journal.txt && ledger $LEDGERARGS -f $ATMPFILE --sort 'd' print > $DTMPFILE && cat $DTMPFILE >> journal.txt && less $DTMPFILE"
