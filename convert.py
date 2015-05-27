@@ -27,7 +27,7 @@ def ignore_transactions(lines, patterns):
     def match(line, patterns):
         if (patterns is not None):
             for pattern in patterns:
-                if re.match(pattern, line):
+                if re.search(pattern, line):
                     return True
         return False
 
