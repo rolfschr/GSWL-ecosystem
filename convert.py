@@ -76,7 +76,7 @@ def main(argv=None):
         cmd += ' --input-date-format "{}"'.format(acfg['date_format'])
         cmd += ' --account {}'.format(account)
         cmd += ' {}'.format(acfg['ledger_args'])
-        cmd += ' | sed -e "s/\(^\s\+.*\s\+\)\([-0-9]\+\)$/\\1{}\\2/g"'.\
+        cmd += ' | sed -e "s/\(^\s\+.*\s\+\)\([-0-9\.]\+\)$/\\1{}\\2/g"'.\
             format(acfg['currency'])
         try:
             cmd += ' | sed -e "s/Expenses:Unknown/{}/g"'.\
