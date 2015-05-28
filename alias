@@ -30,13 +30,8 @@ alias led="ledger -f main.txt ${LEDGERARGS}"
 alias ledp="ledger -f main.txt ${LEDGERARGS} --pager=less"
 alias ledreports="${LEDGER_ECOSYSTEM_DIR}/reports.py"
 alias ledlm='led -p "last month"'
-
 # This is used for conversion of CSV files only
 alias ledconv="${LEDGER_ECOSYSTEM_DIR}/convert.py"
-
-
-alias lmledgermake="git checkout journal.txt && ledger -f ./lm.txt ${LEDGERARGS} --sort "d" print > lm.tmp.txt && cat lm.tmp.txt >> journal.txt && less lm.tmp.txt"
-
 
 function ledxact () {
     FILE=misc.tmp.txt
@@ -58,20 +53,31 @@ function nMonthsAgo () {
     # helper method to get the name of month/year n months ago,
     # e.g. if today is mar 2042, it yields "Mar 2041"
     # todo return ?
-    echo "$(date +"%b %Y" -d "$1 months ago")"
+    date +"%b %Y" -d "$1 months ago"
+}
+
+function listTmpFiles () {
+    echo "meta.txt $(ls ./tmp/*.txt) misc.tmp.txt" | tr '\n' ' '
+}
+
+function csvConvert () {
+    ACCTOUNT=$1
+    CSVFILE=$2
+    BASENAME=$(basename "${CSVFILE}")
+    TMPFILE=./tmp/${BASENAME}.tmp
+    cp "${TMPFILE}" "${TMPFILE}.bak" 2>/dev/null
+    ledconv "${ACCTOUNT}" "${CSVFILE}" | tee "${TMPFILE}" | less
 }
 
 # Source the file in the current working directory
-# This variable should contain the list of all the files to be added to the actual journal:
-TMP_LEDGER_FILES="" # filled by alias.local
 source alias.local 2>/dev/null
 
-# Once all CSV files are converted AND misc.tmp.txt CONTAINS MANUALLY ADDED
-# lEDGER JOURNAL ENTRIES, everything needs to be merged and appended to the
+# Once all CSV files are converted AND misc.tmp.txt contains manually added
+# ledger journal entries, everything needs to be merged and appended to the
 # actual journal.
-TMP_LEDGER_FILES="includes.txt $TMP_LEDGER_FILES misc.tmp.txt"
-ATMPFILE="./tmp/lmall.tmp.txt" # used to store all postings from all tmp text files
-DTMPFILE="./tmp/lmsorted.tmp.txt" # used to store the same as above, but sorted by date
+ATMPFILE="./lmall.tmp.txt" # used to store all postings from all tmp text files
+DTMPFILE="./lmsorted.tmp.txt" # used to store the same as above, but sorted by date
 # This alias merges all tmp Ledger files, sorts them by date, and appends them
 # to the main journal.txt:
-alias lmmake="cat $TMP_LEDGER_FILES >> $ATMPFILE 2>/dev/null;  git checkout journal.txt && ledger $LEDGERARGS -f $ATMPFILE --sort 'd' print > $DTMPFILE && cat $DTMPFILE >> journal.txt && less $DTMPFILE"
+#todo: include funzt nicht im subdir :/
+alias lmmake="cat \$(listTmpFiles) > $ATMPFILE && git checkout journal.txt && ledger $LEDGERARGS -f $ATMPFILE --sort 'd' print > $DTMPFILE && (echo ' '; cat $DTMPFILE) >> journal.txt && less $DTMPFILE && rm $ATMPFILE $DTMPFILE"
