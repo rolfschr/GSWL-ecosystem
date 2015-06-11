@@ -75,6 +75,7 @@ def main(argv=None):
         cmd = 'ledger -f main.txt convert {}'.format(OUTFILE)
         cmd += ' --input-date-format "{}"'.format(acfg['date_format'])
         cmd += ' --account {}'.format(account)
+        cmd += ' --generated'  # pin automated transactions
         cmd += ' {}'.format(acfg['ledger_args'])
         cmd += ' | sed -e "s/\(^\s\+.*\s\+\)\([-0-9\.]\+\)$/\\1{}\\2/g"'.\
             format(acfg['currency'])
