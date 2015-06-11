@@ -30,6 +30,7 @@ alias led="ledger -f main.txt ${LEDGERARGS}"
 alias ledp="ledger -f main.txt ${LEDGERARGS} --pager=less"
 alias ledreports="${LEDGER_ECOSYSTEM_DIR}/reports.py"
 alias ledlm='led -p "last month"'
+alias ledplm='ledp -p "last month"'
 # This is used for conversion of CSV files only
 alias ledconv="${LEDGER_ECOSYSTEM_DIR}/convert.py"
 
