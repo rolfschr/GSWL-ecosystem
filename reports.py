@@ -31,7 +31,7 @@ def getchar():
     return ch
 
 
-def makescript(cmd):
+def makescript(cmds):
     """
     Make a helper script which eases usage of the ecosystem.
     """
@@ -39,20 +39,22 @@ def makescript(cmd):
     out += '#!/bin/bash\n'
     out += 'shopt -s expand_aliases\n'
     out += '. {}/alias\n'.format(THIS_DIR)
-    out += '{}\n'.format(cmd)
+    for cmd in cmds:
+        s = cmd.replace('"', '\\"').replace('`', '\\`').replace('$', '\\$')
+        out += 'echo "\$ {}"\n'.format(s)
+        out += '{}\n'.format(cmd)
     with open(TEMP_SCRIPT_FILE, 'w') as fh:
         fh.write(out)
     os.chmod(TEMP_SCRIPT_FILE, 0777)
 
 
-def show((expl, cmd)):
+def show((expl, cmds)):
     """
     Show one report from the report file.
     """
-    makescript(cmd)
+    makescript(cmds)
     os.system('clear')
     print(expl)
-    print(cmd)
     subprocess.call(TEMP_SCRIPT_FILE, shell=True)
 
 
@@ -65,18 +67,18 @@ def main(argv=None):
     reports = []
     with open(filename, 'r') as fh:
         expl = ''
-        cmd = ''
+        cmds = []
         lines = fh.readlines()[2:]  # skip header lines
         for i, line in enumerate(lines):
             if (line.startswith('#')):
                 expl += line
             elif (not line.startswith('\n')):
-                # consider everything else till a blank line as the command
-                cmd += line
+                # consider everything else till a blank line as commands
+                cmds.append(line.strip())
 
-            if (cmd and lines[i + 1].startswith('\n')):
-                reports.append((expl.strip(), cmd))
-                cmd = ''
+            if (cmds and lines[i + 1].startswith('\n')):
+                reports.append((expl.strip(), cmds))
+                cmds = []
                 expl = ''
 
     i = 0
