@@ -1,7 +1,7 @@
 #!/usr/bin/python
 """
 Usage:
-    reports.py (<file>)
+    reports.py [<file> [<report-num>]]
 
 """
 
@@ -63,10 +63,14 @@ def show((expl, cmds)):
 
 
 def main(argv=None):
-    if (argv is not None and len(argv) > 1):
+    try:
         filename = argv[1]
-    else:
+    except:
         filename = REPORT_FILE
+    try:
+        reportnum = int(argv[2]) - 1
+    except:
+        reportnum = 0
 
     reports = []
     with open(filename, 'r') as fh:
@@ -85,7 +89,7 @@ def main(argv=None):
                 cmds = []
                 expl = ''
 
-    i = 0
+    i = reportnum
     while True:
         show(reports[i])
         print('')
