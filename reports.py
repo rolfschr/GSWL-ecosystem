@@ -14,6 +14,9 @@ import subprocess
 REPORT_FILE = 'reports.txt'
 TEMP_SCRIPT_FILE = '/tmp/.ledgerscript.sh'
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
+COLOR_BLUE = '\\e[36m'
+COLOR_RESET = '\\e[0m'
+CMD_EXPL_COLOR = COLOR_BLUE
 
 
 def getchar():
@@ -31,7 +34,7 @@ def getchar():
     return ch
 
 
-def makescript(cmds):
+def makescript(expl, cmds):
     """
     Make a helper script which eases usage of the ecosystem.
     """
@@ -39,9 +42,11 @@ def makescript(cmds):
     out += '#!/bin/bash\n'
     out += 'shopt -s expand_aliases\n'
     out += '. {}/alias\n'.format(THIS_DIR)
+    out += 'echo -e "{}{}{}"\n'.format(CMD_EXPL_COLOR, expl, COLOR_RESET)
+    out += 'echo ""\n'
     for cmd in cmds:
         s = cmd.replace('"', '\\"').replace('`', '\\`').replace('$', '\\$')
-        out += 'echo "\$ {}"\n'.format(s)
+        out += 'echo -e "{}\$ {}{}"\n'.format(CMD_EXPL_COLOR, s, COLOR_RESET)
         out += '{}\n'.format(cmd)
     with open(TEMP_SCRIPT_FILE, 'w') as fh:
         fh.write(out)
@@ -52,9 +57,8 @@ def show((expl, cmds)):
     """
     Show one report from the report file.
     """
-    makescript(cmds)
+    makescript(expl, cmds)
     os.system('clear')
-    print(expl)
     subprocess.call(TEMP_SCRIPT_FILE, shell=True)
 
 
@@ -84,6 +88,7 @@ def main(argv=None):
     i = 0
     while True:
         show(reports[i])
+        print('')
         print('[#{}] h = previous report, l = next report, q = quit [h/l/q] ?'.
               format(i + 1))
         action = getchar()
