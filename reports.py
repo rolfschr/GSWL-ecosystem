@@ -84,7 +84,8 @@ def main(argv=None):
     i = 0
     while True:
         show(reports[i])
-        print('h = previous report, l = next report, q = quit [h/l/q] ?')
+        print('[#{}] h = previous report, l = next report, q = quit [h/l/q] ?'.
+              format(i + 1))
         action = getchar()
         # TODO: get char of cursor left/up/right/down
         if (action == 'h'):
