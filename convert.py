@@ -56,7 +56,8 @@ def main(argv=None):
     f = file(CONFIG_FILE, 'r')
     cfg = yaml.load(f)
     if account not in cfg:
-        print("Cannot find accout {} in config file.".format(account))
+        print("Cannot find accout {} in config file ({}).".
+              format(account, CONFIG_FILE))
         sys.exit(1)
     else:
         acfg = cfg[account]
@@ -72,7 +73,7 @@ def main(argv=None):
                     # print(line)
                     output_fh.write(line)
 
-        cmd = 'ledger -f main.txt convert {}'.format(OUTFILE)
+        cmd = 'ledger -f convertjournal.txt convert {}'.format(OUTFILE)
         cmd += ' --input-date-format "{}"'.format(acfg['date_format'])
         cmd += ' --account {}'.format(account)
         cmd += ' --generated'  # pin automated transactions

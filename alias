@@ -58,7 +58,7 @@ function nMonthsAgo () {
 }
 
 function listTmpFiles () {
-    echo "meta.txt $(ls ./tmp/*.txt) misc.tmp.txt" | tr '\n' ' '
+    echo "meta.txt $(ls ./tmp/${LAST_MONTHYEAR}*.tmp) misc.tmp.txt" | tr '\n' ' '
 }
 
 function csvConvert () {
@@ -81,4 +81,5 @@ DTMPFILE="./lmsorted.tmp.txt" # used to store the same as above, but sorted by d
 # This alias merges all tmp Ledger files, sorts them by date, and appends them
 # to the main journal.txt:
 #todo: include funzt nicht im subdir :/
-alias lmmake="cat \$(listTmpFiles) > $ATMPFILE && git checkout journal.txt && ledger $LEDGERARGS -f $ATMPFILE --sort 'd' print > $DTMPFILE && (echo ' '; cat $DTMPFILE) >> journal.txt && less $DTMPFILE && rm $ATMPFILE $DTMPFILE"
+alias lmmake="cat \$(listTmpFiles) > $ATMPFILE && ledger $LEDGERARGS -f $ATMPFILE --sort 'd' print > $DTMPFILE && git checkout journal.txt && (echo ' '; cat $DTMPFILE) >> journal.txt && less $DTMPFILE && rm $ATMPFILE $DTMPFILE"
+alias lmclean="rm ./tmp/*"
