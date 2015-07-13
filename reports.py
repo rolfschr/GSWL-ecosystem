@@ -34,6 +34,10 @@ def getchar():
     return ch
 
 
+def colorize(msg):
+    return '{}{}{}'.format(CMD_EXPL_COLOR, msg, COLOR_RESET)
+
+
 def makescript(expl, cmds):
     """
     Make a helper script which eases usage of the ecosystem.
@@ -46,7 +50,10 @@ def makescript(expl, cmds):
     out += 'echo ""\n'
     for cmd in cmds:
         s = cmd.replace('"', '\\"').replace('`', '\\`').replace('$', '\\$')
-        out += 'echo -e "{}\$ {}{}"\n'.format(CMD_EXPL_COLOR, s, COLOR_RESET)
+        if (cmd.startswith('echo')):  # prevent "double echo"
+            out += 'echo -e -n "{} "\n'.format(colorize('\$ echo'))
+        else:
+            out += 'echo -e "{}"\n'.format(colorize('\$ ' + s))
         out += '{}\n'.format(cmd)
     with open(TEMP_SCRIPT_FILE, 'w') as fh:
         fh.write(out)
