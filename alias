@@ -57,6 +57,29 @@ function nMonthsAgo () {
     date +"%b %Y" -d "$1 months ago"
 }
 
+
+function ledbalper () {
+    # ledbalper <CURRENCY> <ACCOUNTS> [<TOTAL>]
+    # "ledger bal[ance] [per]centage"
+    # Outputs the usual balance report with an additional percentage column.
+    # The base value (100%, "total") for the calculations can be provided as an
+    # optional argument. If multiple currencies are used, they must be
+    # convertable. Ex:
+    # ledbalper \$ "Income:Job Income:CapitalGains"
+    # ledbalper \$ "Income:Job Income:CapitalGains" 1337.37
+    CUR=$1
+    ACCOUNTS=$2
+    TOTAL=$3
+    HINT="(set manually)"
+    if [[ "$TOTAL" == "" ]]; then
+        # Do not use double quotes here!
+        TOTAL=$(led bal $ACCOUNTS -n -X $CUR --format "%(quantity(display_total))\n" | tail -n 1)
+        HINT=""
+    fi
+    # Do not use double quotes here!
+    led bal $ACCOUNTS --X $CUR --sort "T" --flat --format "%(ansify_if(justify(scrub(display_total), 20, 20 + int(prepend_width), true, color), bold if should_bold)) %(ansify_if(justify(scrub(percent(to_amount(display_total), $TOTAL)), 10, 10 + int(prepend_width), true, color), bold if should_bold)) %(!options.flat ? depth_spacer : \"\") %-(ansify_if(ansify_if(partial_account(options.flat), blue if color), bold if should_bold))\n%/%\$1 %\$2 $HINT\n%/%(prepend_width ? \" \" * int(prepend_width) : \"\")-------------------------------\n"
+}
+
 function listTmpFiles () {
     echo "meta.txt $(ls ./tmp/${LAST_MONTHYEAR}*.tmp) misc.tmp.txt" | tr '\n' ' '
 }
