@@ -10,8 +10,9 @@ except ImportError:
     print('pip install pyyaml')
     sys.exit(1)
 
-CONFIG_FILE = 'bankaccounts.yml'
+CONFIG_FILE = './bankaccounts.yml'
 OUTFILE = '/tmp/out.csv'
+LEDGER_FILE = './csv2journal.txt'
 
 
 def usage():
@@ -21,6 +22,14 @@ Usage:
 """.format(__file__)
     print(s)
     sys.exit(1)
+
+
+def check_env():
+    files = [CONFIG_FILE, LEDGER_FILE]
+    for f in files:
+        if (not os.path.exists(f)):
+            print('Cannot find expeted file {}'.format(CONFIG_FILE))
+            sys.exit(1)
 
 
 def ignore_transactions(lines, patterns):
@@ -49,6 +58,7 @@ def modify_transactions(lines, mods):
 
 
 def main(argv=None):
+    check_env()
     if (argv is None or len(argv) < 3):
         usage()
     account = argv[1]
@@ -73,7 +83,7 @@ def main(argv=None):
                     # print(line)
                     output_fh.write(line)
 
-        cmd = 'ledger -f convertjournal.txt convert {}'.format(OUTFILE)
+        cmd = 'ledger -f {} convert {}'.format(LEDGER_FILE, OUTFILE)
         cmd += ' --input-date-format "{}"'.format(acfg['date_format'])
         cmd += ' --account {}'.format(account)
         cmd += ' --generated'  # pin automated transactions
