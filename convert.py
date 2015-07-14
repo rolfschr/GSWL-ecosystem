@@ -28,7 +28,7 @@ def check_env():
     files = [CONFIG_FILE, LEDGER_FILE]
     for f in files:
         if (not os.path.exists(f)):
-            print('Cannot find expeted file {}'.format(CONFIG_FILE))
+            print('Cannot find expected file {}'.format(f))
             sys.exit(1)
 
 
