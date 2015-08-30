@@ -44,6 +44,8 @@ def ignore_transactions(lines, patterns):
     for line in lines:
         if (not match(line, patterns)):
             ret.append(line)
+        else:
+            print('Attention: Ignored line "{}"'.format(line.strip()))
     return ret
 
 
