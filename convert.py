@@ -42,12 +42,13 @@ def ignore_transactions(lines, patterns):
         return False
 
     ret = []
+    ignored = []
     for line in lines:
         if (not match(line, patterns)):
             ret.append(line)
         else:
-            print('Attention: Ignored line "{}"'.format(line.strip()))
-    return ret
+            ignored.append(line)
+    return ret, ignored
 
 
 def modify_transactions(lines, mods):
@@ -78,7 +79,8 @@ def main(argv=None):
             lines = csv_fh.readlines()
             lines = [re.sub(r'[^\x00-\x7F]+', '_', l) for l in lines]
             lines = lines[int(acfg['ignored_lines']):]
-            lines = ignore_transactions(lines, acfg['ignored_transactions'])
+            lines, ignored = \
+                ignore_transactions(lines, acfg['ignored_transactions'])
             lines = modify_transactions(lines, acfg['modify_transactions'])
             with open(OUTFILE, "w") as output_fh:
                 output_fh.write(acfg['convert_header'] + '\n')
@@ -92,6 +94,13 @@ def main(argv=None):
             cmd += ' --minimal {} {}'.format(csv_filename, OUTFILE)
             cmd += ' ; echo -n "\n\n"'
             os.system(cmd)
+
+        if(len(ignored) > 0):
+            print('')
+            print('')
+            print('Attention: The following lines were ignored:')
+            for line in ignored:
+                print(line.strip())
 
         cmd = 'ledger -f {} convert {}'.format(LEDGER_FILE, OUTFILE)
         cmd += ' --input-date-format "{}"'.format(acfg['date_format'])
