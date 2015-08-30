@@ -13,6 +13,7 @@ except ImportError:
 CONFIG_FILE = './bankaccounts.yml'
 OUTFILE = '/tmp/out.csv'
 LEDGER_FILE = './csv2journal.txt'
+SHOW_DIFF = False
 
 
 def usage():
@@ -84,6 +85,13 @@ def main(argv=None):
                 for line in lines:
                     # print(line)
                     output_fh.write(line)
+        if (SHOW_DIFF is True):
+            cmd = 'echo "Temporarily converted CSV:"'
+            cmd += ' && '
+            cmd += '`which colordiff > /dev/null && echo colordiff || echo diff`'
+            cmd += ' --minimal {} {}'.format(csv_filename, OUTFILE)
+            cmd += ' ; echo -n "\n\n"'
+            os.system(cmd)
 
         cmd = 'ledger -f {} convert {}'.format(LEDGER_FILE, OUTFILE)
         cmd += ' --input-date-format "{}"'.format(acfg['date_format'])
