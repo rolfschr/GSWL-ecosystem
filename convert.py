@@ -88,11 +88,16 @@ def main(argv=None):
                     # print(line)
                     output_fh.write(line)
         if (SHOW_DIFF is True):
-            cmd = 'echo "Temporarily converted CSV:"'
+            cmd = ''
+            cmd += '`which wdiff > /dev/null`'
+            cmd += ' && `which colordiff > /dev/null`'
+            cmd += ' && echo "Temporarily converted CSV:"'
             cmd += ' && '
-            cmd += '`which colordiff > /dev/null && echo colordiff || echo diff`'
-            cmd += ' --minimal {} {}'.format(csv_filename, OUTFILE)
-            cmd += ' ; echo -n "\n\n"'
+            cmd += ' wdiff -n --no-deleted'
+            cmd += ' {} {}'.format(csv_filename, OUTFILE)
+            cmd += ' | colordiff'
+            cmd += '; echo -n "\n\n"'
+            # print(cmd)
             os.system(cmd)
 
         if(len(ignored) > 0):
