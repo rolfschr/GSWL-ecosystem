@@ -2,22 +2,9 @@
 
 LEDGER_ECOSYSTEM_DIR=$(dirname "$0") # needed for later
 
-# These variables are used in conjunction with the CSV files from the bank.
-# When the latter are named consistently (ex:"apr2044_bank1.csv,
-# may2044_bank1.csv") one can use simple aliases to always convert the latest
-# CSV files. (Assuming monthly updates in this case.)
-THIS_MONTH=$(date +'%b' | tr '[:upper:]' '[:lower:]') # "apr"
-LAST_MONTH=$(date +'%b' -d 'last month' | tr '[:upper:]' '[:lower:]') # "apr"
-THIS_YEAR=$(date +'%Y') # "2044"
-LAST_YEAR=$(date +'%Y' -d 'last year') # "2044"
-LAST_MONTHYEAR="${LAST_MONTH}${THIS_YEAR}"
-if [[ "$LAST_MONTH" == "dec" ]]; then
-    LAST_MONTHYEAR="${LAST_MONTH}${LAST_YEAR}"
-fi
-
 # This is the main command to invoke Ledger.
-# --strict          : Abort if account, tag or commodity is unknown.
-# --pedantic        : Warn if account, tag or commodity is unknown.
+# --strict          : Warn if account, tag or commodity is unknown.
+# --pedantic        : Abort if account, tag or commodity is unknown.
 # --check-payees    : Warn/abort if payee is unknown.
 # --explicit        : Warn/abort also for cleared transactions
 # --price-db FILE   : Specify the location of the price entry data file.
@@ -33,6 +20,19 @@ alias ledlm='led -p "last month"'
 alias ledplm='ledp -p "last month"'
 # This is used for conversion of CSV files only
 alias ledconv="${LEDGER_ECOSYSTEM_DIR}/convert.py"
+
+# These variables are used in conjunction with the CSV files from the bank.
+# When the latter are named consistently (ex:"apr2044_bank1.csv,
+# may2044_bank1.csv") one can use simple aliases to always convert the latest
+# CSV files. (Assuming monthly updates in this case.)
+THIS_MONTH=$(date +'%b' | tr '[:upper:]' '[:lower:]') # "apr"
+LAST_MONTH=$(date +'%b' -d 'last month' | tr '[:upper:]' '[:lower:]') # "apr"
+THIS_YEAR=$(date +'%Y') # "2044"
+LAST_YEAR=$(date +'%Y' -d 'last year') # "2044"
+LAST_MONTHYEAR="${LAST_MONTH}${THIS_YEAR}"
+if [[ "$LAST_MONTH" == "dec" ]]; then
+    LAST_MONTHYEAR="${LAST_MONTH}${LAST_YEAR}"
+fi
 
 function ledxact () {
     FILE=misc.tmp.txt
