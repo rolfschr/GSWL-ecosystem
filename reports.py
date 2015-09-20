@@ -57,7 +57,7 @@ def makescript(expl, cmds):
         out += '{}\n'.format(cmd)
     with open(TEMP_SCRIPT_FILE, 'w') as fh:
         fh.write(out)
-    os.chmod(TEMP_SCRIPT_FILE, 0777)
+    os.chmod(TEMP_SCRIPT_FILE, 0o777)
 
 
 def show((expl, cmds)):
