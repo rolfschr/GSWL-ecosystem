@@ -93,8 +93,6 @@ function csvConvert () {
     ledconv "${ACCTOUNT}" "${CSVFILE}" | tee "${TMPFILE}" | less
 }
 
-# Source the file in the current working directory
-source alias.local 2>/dev/null
 
 # Once all CSV files are converted AND misc.tmp.txt contains manually added
 # ledger journal entries, everything needs to be merged and appended to the
@@ -106,3 +104,6 @@ DTMPFILE="./lmsorted.tmp.txt" # used to store the same as above, but sorted by d
 #todo: include funzt nicht im subdir :/
 alias lmmake="cat \$(listTmpFiles) > $ATMPFILE && ledger $LEDGERARGS -f $ATMPFILE --sort 'd' print > $DTMPFILE && git checkout journal.txt && (echo ' '; cat $DTMPFILE) >> journal.txt && less $DTMPFILE && rm $ATMPFILE $DTMPFILE"
 alias lmclean="rm ./tmp/*"
+
+# Source the file in the current working directory
+source alias.local 2>/dev/null
