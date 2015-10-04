@@ -91,11 +91,11 @@ def main(argv=None):
             cmd = ''
             cmd += '`which wdiff > /dev/null`'
             cmd += ' && `which colordiff > /dev/null`'
-            cmd += ' && echo "Temporarily converted CSV:"'
+            cmd += ' && echo "; Temporarily converted CSV:"'
             cmd += ' && '
             cmd += ' wdiff -n --no-deleted'
             cmd += ' {} {}'.format(csv_filename, OUTFILE)
-            cmd += ' | colordiff'
+            cmd += ' | colordiff 1>&2'
             cmd += '; echo -n "\n\n"'
             # print(cmd)
             os.system(cmd)
@@ -103,9 +103,9 @@ def main(argv=None):
         if(len(ignored) > 0):
             print('')
             print('')
-            print('Attention: The following lines were ignored:')
+            print('; Attention: The following lines were ignored:')
             for line in ignored:
-                print(line.strip())
+                print('; {}'.format(line.strip()))
 
         cmd = 'ledger -f {} convert {}'.format(LEDGER_FILE, OUTFILE)
         cmd += ' --input-date-format "{}"'.format(acfg['date_format'])
