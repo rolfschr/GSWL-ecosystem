@@ -38,6 +38,10 @@ def colorize(msg):
     return '{}{}{}'.format(CMD_EXPL_COLOR, msg, COLOR_RESET)
 
 
+def escape(s):
+    return s.replace('"', '\\"').replace('`', '\\`').replace('$', '\\$')
+
+
 def makescript(expl, cmds):
     """
     Make a helper script which eases usage of the ecosystem.
@@ -46,10 +50,11 @@ def makescript(expl, cmds):
     out += '#!/bin/bash\n'
     out += 'shopt -s expand_aliases\n'
     out += '. {}/alias\n'.format(THIS_DIR)
+    expl = escape(expl)
     out += 'echo -e "{}{}{}"\n'.format(CMD_EXPL_COLOR, expl, COLOR_RESET)
     out += 'echo ""\n'
     for cmd in cmds:
-        s = cmd.replace('"', '\\"').replace('`', '\\`').replace('$', '\\$')
+        s = escape(cmd)
         if (cmd.startswith('echo')):  # prevent "double echo"
             out += 'echo -e -n "{} "\n'.format(colorize('\$ echo'))
         else:
