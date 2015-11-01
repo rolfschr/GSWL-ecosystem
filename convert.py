@@ -3,6 +3,7 @@
 import re
 import sys
 import os
+import tempfile
 try:
     import yaml
 except ImportError:
@@ -11,8 +12,8 @@ except ImportError:
     sys.exit(1)
 
 CONFIG_FILE = './bankaccounts.yml'
-OUTFILE = '/tmp/out.csv'
 LEDGER_FILE = './csv2journal.txt'
+RE_LEDGER_FST_LINE_TRANSACTION = re.compile('^[0-9]+')
 SHOW_DIFF = False
 
 
@@ -34,6 +35,10 @@ def check_env():
 
 
 def ignore_transactions(lines, patterns):
+    """
+    Returns a) a new list of lines exluding some of the original lines and b) a
+    list of excluded lines.
+    """
     def match(line, patterns):
         if (patterns is not None):
             for pattern in patterns:
@@ -41,24 +46,31 @@ def ignore_transactions(lines, patterns):
                     return True
         return False
 
-    ret = []
-    ignored = []
+    new_lines = []
+    ignored_lines = []
     for line in lines:
         if (not match(line, patterns)):
-            ret.append(line)
+            new_lines.append(line)
         else:
-            ignored.append(line)
-    return ret, ignored
+            ignored_lines.append(line)
+    return new_lines, ignored_lines
 
 
 def modify_transactions(lines, mods):
-    ret = []
+    """
+    Returns a) a new list of modified lines and b) a list of tuples of
+    (original, modified) lines.
+    """
+    new_lines = []
+    modified_lines = []
     for line in lines:
+        raw = line
         if (mods is not None):
             for mod in mods:
                 line = re.sub(mod[0], mod[1], line)
-        ret.append(line)
-    return ret
+        new_lines.append(line)
+        modified_lines.append((raw, line))
+    return new_lines, modified_lines
 
 
 def main(argv=None):
@@ -74,40 +86,27 @@ def main(argv=None):
               format(account, CONFIG_FILE))
         sys.exit(1)
     else:
+        # Get account config.
         acfg = cfg[account]
+
+        # Modify CSV file (delete/modify lines, add header, ...).
+        _, tmp_csv_filename = tempfile.mkstemp()
         with open(csv_filename) as csv_fh:
             lines = csv_fh.readlines()
             lines = [re.sub(r'[^\x00-\x7F]+', '_', l) for l in lines]
             lines = lines[int(acfg['ignored_lines']):]
-            lines, ignored = \
+            lines, ignored_lines = \
                 ignore_transactions(lines, acfg['ignored_transactions'])
-            lines = modify_transactions(lines, acfg['modify_transactions'])
-            with open(OUTFILE, "w") as output_fh:
+            lines, modified_lines = \
+                modify_transactions(lines, acfg['modify_transactions'])
+            with open(tmp_csv_filename, "w") as output_fh:
                 output_fh.write(acfg['convert_header'] + '\n')
                 for line in lines:
                     # print(line)
                     output_fh.write(line)
-        if (SHOW_DIFF is True):
-            cmd = ''
-            cmd += '`which wdiff > /dev/null`'
-            cmd += ' && `which colordiff > /dev/null`'
-            cmd += ' && echo "; Temporarily converted CSV:"'
-            cmd += ' && '
-            cmd += ' wdiff -n --no-deleted'
-            cmd += ' {} {}'.format(csv_filename, OUTFILE)
-            cmd += ' | colordiff 1>&2'
-            cmd += '; echo -n "\n\n"'
-            # print(cmd)
-            os.system(cmd)
 
-        if(len(ignored) > 0):
-            print('')
-            print('')
-            print('; Attention: The following lines were ignored:')
-            for line in ignored:
-                print('; {}'.format(line.strip()))
-
-        cmd = 'ledger -f {} convert {}'.format(LEDGER_FILE, OUTFILE)
+        # Use Ledger to convert the modified CSV file.
+        cmd = 'ledger -f {} convert {}'.format(LEDGER_FILE, tmp_csv_filename)
         cmd += ' --input-date-format "{}"'.format(acfg['date_format'])
         cmd += ' --account {}'.format(account)
         cmd += ' --generated'  # pin automated transactions
@@ -119,11 +118,48 @@ def main(argv=None):
                 format(acfg['expenses_unknown'])
         except:
             pass
-        # cmd += ' | grep H'
-
-        # directly call in subshell
+        fd, tmp_journal_filename = tempfile.mkstemp()
+        os.close(fd)
+        cmd += ' > {}'.format(tmp_journal_filename)
         os.system(cmd)
-        os.remove(OUTFILE)
+
+        # For every trannsaction, add the correspinding CSV file line to the
+        # generated journal file.
+        new_lines = []
+        with open(tmp_journal_filename, 'a+') as fh:
+            i = 0
+            for line in fh.readlines():
+                new_lines.append(line)
+                if (RE_LEDGER_FST_LINE_TRANSACTION.match(line)):
+                    # Assuming that the transactions in the journal file have
+                    # the same order as the transactions in the csv file, we
+                    # can match modified csv lines to the journal's
+                    # transactions:
+                    new_lines.append('    ; CSV data:\n')
+                    new_lines.append('    ; from : {}'.
+                                     format(modified_lines[i][1]))
+                    new_lines.append('    ; (raw): {}'.
+                                     format(modified_lines[i][0]))
+                    i += 1
+        with open(tmp_journal_filename, 'w') as fh:
+            fh.write(''.join(new_lines))
+
+        # Append the list of ignored transactions to the generated journal
+        # file.
+        if(len(ignored_lines) > 0):
+            with open(tmp_journal_filename, 'a+') as fh:
+                fh.write('\n\n')
+                fh.write('; Attention: The following lines from ')
+                fh.write('{} were ignored:\n'.format(csv_filename))
+                for line in ignored_lines:
+                    fh.write('; {}\n'.format(line.strip()))
+
+        # Print to stdout for later use.
+        os.system('cat {}'.format(tmp_journal_filename))
+
+        # Cleanup.
+        os.remove(tmp_csv_filename)
+        os.remove(tmp_journal_filename)
 
 if __name__ == '__main__':
     main(sys.argv)
