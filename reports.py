@@ -96,7 +96,8 @@ def main(argv=None):
                 # consider everything else till a blank line as commands
                 cmds.append(line.strip())
 
-            if (cmds and lines[i + 1].startswith('\n')):
+            ipp = i + 1
+            if (cmds and (ipp == len(lines) or lines[ipp].startswith('\n'))):
                 reports.append((expl.strip(), cmds))
                 cmds = []
                 expl = ''
