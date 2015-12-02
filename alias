@@ -82,6 +82,32 @@ function csvConvert () {
     ledconv "${ACCTOUNT}" "${CSVFILE}" | tee "${TMPFILE}" | less
 }
 
+function ledplot () {
+    # This has been shamelessly stolen from Ledger's source code (contrib
+    # subfolder).
+
+    # This script facilities plotting of a ledger register report.  If you
+    # use OS/X, and have AquaTerm installed, you will probably want to set
+    # LEDGER_TERM to "aqua".
+    #
+    # Examples of use:
+    #
+    #   report -j -M reg food            # plot monthly food costs
+    #   report -J reg checking           # plot checking account balance
+    if [ -z "$LEDGER_TERM" ]; then
+      LEDGER_TERM="x11 persist"
+    fi
+    HEADER="set terminal $LEDGER_TERM
+set xdata time
+set timefmt \"%Y-%m-%d\"
+plot \"-\" using 1:2 with lines
+plot \"-\" using 1:2 with lines
+"
+    FILE=/tmp/ledgnuplot
+    echo "$HEADER" > $FILE
+    led "$@" >> $FILE
+    gnuplot < $FILE
+}
 
 # Once all CSV files are converted AND misc.tmp.txt contains manually added
 # ledger journal entries, everything needs to be merged and appended to the
