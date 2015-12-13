@@ -98,11 +98,20 @@ def main(argv=None):
         with open(csv_filename) as csv_fh:
             lines = csv_fh.readlines()
             lines = [re.sub(r'[^\x00-\x7F]+', '_', l) for l in lines]
-            lines = lines[int(acfg['ignored_lines']):]
-            lines, ignored_lines = \
-                ignore_transactions(lines, acfg['ignored_transactions'])
-            lines, modified_lines = \
-                modify_transactions(lines, acfg['modify_transactions'])
+            lines = lines[int(acfg['ignored_header_lines']):]
+
+            # Nothing is ignored by default.
+            ignored_lines = []
+            if ('ignore_transactions' in acfg):
+                lines, ignored_lines = \
+                    ignore_transactions(lines, acfg['ignore_transactions'])
+
+            # Nothing is modfied by default.
+            modified_lines = [(line, line) for line in lines]
+            if ('modify_transactions' in acfg):
+                lines, modified_lines = \
+                    modify_transactions(lines, acfg['modify_transactions'])
+
             with open(tmp_csv_filename, "w") as output_fh:
                 output_fh.write(acfg['convert_header'] + '\n')
                 for line in lines:
