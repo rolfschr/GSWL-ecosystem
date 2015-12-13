@@ -78,16 +78,20 @@ def main(argv=None):
     if (argv is None or len(argv) < 3):
         usage()
     account = argv[1]
+    account_colon = account.replace("___", ":")
+    account_underscore = account_colon.replace(":", "___")
     csv_filename = argv[2]
     f = file(CONFIG_FILE, 'r')
     cfg = yaml.load(f)
-    if account not in cfg:
+    if account_underscore not in cfg:
         print("Cannot find accout {} in config file ({}).".
-              format(account, CONFIG_FILE))
+              format(account_colon, CONFIG_FILE))
+        print("Did you define the correct account?")
+        print("Did you use 3 underscores instead of each colon?")
         sys.exit(1)
     else:
         # Get account config.
-        acfg = cfg[account]
+        acfg = cfg[account_underscore]
 
         # Modify CSV file (delete/modify lines, add header, ...).
         _, tmp_csv_filename = tempfile.mkstemp()
@@ -108,7 +112,7 @@ def main(argv=None):
         # Use Ledger to convert the modified CSV file.
         cmd = 'ledger -f {} convert {}'.format(LEDGER_FILE, tmp_csv_filename)
         cmd += ' --input-date-format "{}"'.format(acfg['date_format'])
-        cmd += ' --account {}'.format(account)
+        cmd += ' --account {}'.format(account_colon)
         cmd += ' --generated'  # pin automated transactions
         cmd += ' {}'.format(acfg['ledger_args'])
         cmd += ' | sed -e "s/\(^\s\+.*\s\+\)\([-0-9\.]\+\)$/\\1{}\\2/g"'.\
