@@ -115,8 +115,8 @@ plot \"-\" using 1:2 with lines
 # Once all CSV files are converted AND misc.tmp.txt contains manually added
 # ledger journal entries, everything needs to be merged and appended to the
 # actual journal.
-ATMPFILE="./lmall.tmp.txt" # used to store all postings from all tmp text files
-DTMPFILE="./lmsorted.tmp.txt" # used to store the same as above, but sorted by date
+ATMPFILE="/tmp/lmall.tmp.txt" # used to store all postings from all tmp text files
+DTMPFILE="/tmp/lmsorted.tmp.txt" # used to store the same as above, but sorted by date
 # This alias merges all tmp Ledger files, sorts them by date, and appends them
 # to the main journal.txt:
 #todo: include funzt nicht im subdir :/
