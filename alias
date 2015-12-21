@@ -25,14 +25,17 @@ alias ledconv="${LEDGER_ECOSYSTEM_DIR}/convert.py"
 # When the latter are named consistently (ex:"apr2044_bank1.csv,
 # may2044_bank1.csv") one can use simple aliases to always convert the latest
 # CSV files. (Assuming monthly updates in this case.)
-THIS_MONTH=$(date +'%b' | tr '[:upper:]' '[:lower:]') # "apr"
-LAST_MONTH=$(date +'%b' -d 'last month' | tr '[:upper:]' '[:lower:]') # "apr"
+THIS_AMN=$(date +'%b' | tr '[:upper:]' '[:lower:]') # Abreviated Month Name, ex: "apr"
+LAST_AMN=$(date +'%b' -d 'last month' | tr '[:upper:]' '[:lower:]') # "apr"
 THIS_YEAR=$(date +'%Y') # "2044"
 LAST_YEAR=$(date +'%Y' -d 'last year') # "2044"
-LAST_MONTHYEAR="${LAST_MONTH}${THIS_YEAR}"
-if [[ "$LAST_MONTH" == "dec" ]]; then
-    LAST_MONTHYEAR="${LAST_MONTH}${LAST_YEAR}"
+LAST_AMN_AND_YEAR="${LAST_AMN}${THIS_YEAR}" # "apr2044"
+if [[ "$LAST_AMN" == "dec" ]]; then
+    LAST_AMN_AND_YEAR="${LAST_MONTH_ABN}${LAST_YEAR}"
 fi
+# First Day Of Month x Months Ago (may be used for specific Ledger reports)
+FST_DOM_6MONTHS_AGO=`date +"%Y/%m/01" -d "6 months ago"`
+FST_DOM_12MONTHS_AGO=`date +"%Y/%m/01" -d "12 months ago"`
 
 function ledxact () {
     FILE=misc.tmp.txt
@@ -70,7 +73,7 @@ function ledbalper () {
 }
 
 function listTmpFiles () {
-    echo "meta.txt $(ls ./tmp/${LAST_MONTHYEAR}*.tmp) misc.tmp.txt" | tr '\n' ' '
+    echo "meta.txt $(ls ./tmp/${LAST_AMN}*.tmp) misc.tmp.txt" | tr '\n' ' '
 }
 
 function csvConvert () {
