@@ -53,12 +53,12 @@ function ledxact () {
     fi
 }
 
-function nMonthsAgo () {
-    # helper method to get the name of month/year n months ago,
-    # e.g. if today is mar 2042, it yields "Mar 2041"
-    # todo return ?
-    date +"%b %Y" -d "$1 months ago"
-}
+#function nMonthsAgo () {
+#    # helper method to get the name of month/year n months ago,
+#    # e.g. if today is mar 2042, it yields "Mar 2041"
+#    # todo return ?
+#    date +"%b %Y" -d "$1 months ago"
+#}
 
 
 function ledbalper () {
