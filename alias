@@ -31,7 +31,7 @@ THIS_YEAR=$(date +'%Y') # "2044"
 LAST_YEAR=$(date +'%Y' -d 'last year') # "2044"
 LAST_AMN_AND_YEAR="${LAST_AMN}${THIS_YEAR}" # "apr2044"
 if [[ "$LAST_AMN" == "dec" ]]; then
-    LAST_AMN_AND_YEAR="${LAST_MONTH_ABN}${LAST_YEAR}"
+    LAST_AMN_AND_YEAR="${LAST_AMN}${LAST_YEAR}"
 fi
 # First Day Of Month x Months Ago (may be used for specific Ledger reports)
 FST_DOM_6MONTHS_AGO=`date +"%Y/%m/01" -d "6 months ago"`
