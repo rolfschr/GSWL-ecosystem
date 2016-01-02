@@ -68,9 +68,10 @@ function ledbalper () {
     # If multiple currencies are used, they must be convertable.
     # Ex:
     # ledbalper -p "this year" Income
+    # ledbalper -p "this year" Income --flat --sort "T"
     # ledbalper -X \$ Income:Investments
-    TOTAL=$(led bal $@ -n --format "%(quantity(display_total))\n" | tail -n 1)
-    led bal $@ --sort "T" --flat --format "%(ansify_if(justify(scrub(display_total), 20, 20 + int(prepend_width), true, color), bold if should_bold)) %(ansify_if(justify(scrub(percent(to_amount(display_total), $TOTAL)), 10, 10 + int(prepend_width), true, color), bold if should_bold)) %(!options.flat ? depth_spacer : \"\") %-(ansify_if(ansify_if(partial_account(options.flat), blue if color), bold if should_bold))\n%/%\$1 %\$2\n%/%(prepend_width ? \" \" * int(prepend_width) : \"\")-------------------------------\n"
+    TOTAL=$(led bal ${@//--flat/} -n --format "%(quantity(display_total))\n" | tail -n 1)
+    led bal $@ --format "%(ansify_if(justify(scrub(display_total), 20, 20 + int(prepend_width), true, color), bold if should_bold)) %(ansify_if(justify(scrub(percent(to_amount(display_total), $TOTAL)), 10, 10 + int(prepend_width), true, color), bold if should_bold)) %(!options.flat ? depth_spacer : \"\") %-(ansify_if(ansify_if(partial_account(options.flat), blue if color), bold if should_bold))\n%/%\$1 %\$2\n%/%(prepend_width ? \" \" * int(prepend_width) : \"\")-------------------------------\n"
 }
 
 function listTmpFiles () {
