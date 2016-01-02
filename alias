@@ -62,7 +62,8 @@ function ledxact () {
 
 
 function ledbalper () {
-    # "ledger bal[ance] [per]centage"
+    # Mnemonic:
+    # "led[ger] bal[ance] [per]centage"
     # Outputs the usual balance report with an additional percentage column.
     # If multiple currencies are used, they must be convertable.
     # Ex:
