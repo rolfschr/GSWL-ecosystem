@@ -25,7 +25,7 @@ alias ledconv="${LEDGER_ECOSYSTEM_DIR}/convert.py"
 # When the latter are named consistently (ex:"apr2044_bank1.csv,
 # may2044_bank1.csv") one can use simple aliases to always convert the latest
 # CSV files. (Assuming monthly updates in this case.)
-THIS_AMN=$(date +'%b' | tr '[:upper:]' '[:lower:]') # Abreviated Month Name, ex: "apr"
+THIS_AMN=$(date +'%b' | tr '[:upper:]' '[:lower:]') # Abreviated Month Name, e.g. "apr"
 LAST_AMN=$(date +'%b' -d 'last month' | tr '[:upper:]' '[:lower:]') # "apr"
 THIS_YEAR=$(date +'%Y') # "2044"
 LAST_YEAR=$(date +'%Y' -d 'last year') # "2044"
