@@ -1,6 +1,6 @@
 #!/bin/bash
 
-LEDGER_ECOSYSTEM_DIR=$(dirname "$0") # needed for later
+LEDGER_ECOSYSTEM_DIR=$(dirname "$_") # needed for later
 
 # This is the main command to invoke Ledger.
 # --strict          : Warn if account, tag or commodity is unknown.
