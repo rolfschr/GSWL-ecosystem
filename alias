@@ -125,5 +125,5 @@ DTMPFILE="/tmp/lmsorted.tmp.txt" # used to store the same as above, but sorted b
 alias lmmake="cat \$(listTmpFiles) > $ATMPFILE && ledger $LEDGERARGS -f $ATMPFILE --sort 'd' print > $DTMPFILE && git checkout journal.txt && (echo ' '; cat $DTMPFILE) >> journal.txt && less $DTMPFILE && rm $ATMPFILE $DTMPFILE"
 alias lmclean="rm ./tmp/*"
 
-# Source the file in the current working directory
+# Source this file in the current working directory
 source alias.local 2>/dev/null
