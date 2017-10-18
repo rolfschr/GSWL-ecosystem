@@ -14,8 +14,8 @@ import subprocess
 REPORT_FILE = 'reports.txt'
 TEMP_SCRIPT_FILE = '/tmp/.ledgerscript.sh'
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
-COLOR_BLUE = '\\e[36m'
-COLOR_RESET = '\\e[0m'
+COLOR_BLUE = '\\033[36m'
+COLOR_RESET = '\\033[0m'
 CMD_EXPL_COLOR = COLOR_BLUE
 
 
