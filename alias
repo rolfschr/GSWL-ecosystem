@@ -27,11 +27,11 @@ alias ledconv="${LEDGER_ECOSYSTEM_DIR}/convert.py"
 # CSV files. (Assuming monthly updates in this case.)
 THIS_AMN=$(date +'%b' | tr '[:upper:]' '[:lower:]') # Abreviated Month Name, e.g. "apr"
 
-LINUX_DATE=$(date -d 'last year' 2>/dev/null)
-if [[ "$LINUX_DATE" == "" ]]; then
+GNU_DATE=$(date -d 'last year' 2>/dev/null)
+if [[ "$GNU_DATE" == "" ]]; then
   LAST_AMN=$(date -v-1m +'%b' | tr '[:upper:]' '[:lower:]') # "apr"
   LAST_YEAR=$(date -v-1y +'%Y') # "2044"
-  FST_DOM_6MONTHS_AGO=`date -v-6m +"%Y/%m/01" `
+  FST_DOM_6MONTHS_AGO=`date -v-6m +"%Y/%m/01"`
   FST_DOM_12MONTHS_AGO=`date -v-12m +"%Y/%m/01"`
 else
   LAST_AMN=$(date +'%b' -d 'last month' | tr '[:upper:]' '[:lower:]') # "apr"
