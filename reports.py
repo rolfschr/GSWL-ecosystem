@@ -65,10 +65,11 @@ def makescript(expl, cmds):
     os.chmod(TEMP_SCRIPT_FILE, 0o777)
 
 
-def show((expl, cmds)):
+def show(report):
     """
     Show one report from the report file.
     """
+    expl, cmds = report
     makescript(expl, cmds)
     os.system('clear')
     subprocess.call(TEMP_SCRIPT_FILE, shell=True)
