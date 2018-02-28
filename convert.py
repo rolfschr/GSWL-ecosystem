@@ -81,7 +81,7 @@ def main(argv=None):
     account_colon = account.replace("___", ":")
     account_underscore = account_colon.replace(":", "___")
     csv_filename = argv[2]
-    f = file(CONFIG_FILE, 'r')
+    f = open(CONFIG_FILE, 'r')
     cfg = yaml.load(f)
     if account_underscore not in cfg:
         print("Cannot find accout {} in config file ({}).".
