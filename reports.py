@@ -55,11 +55,14 @@ def makescript(expl, cmds):
     out += 'echo ""\n'
     for cmd in cmds:
         s = escape(cmd)
-        if (cmd.startswith('echo')):  # prevent "double echo"
-            out += 'echo -e -n "{} "\n'.format(colorize('\$ echo'))
+        if (cmd.startswith('<BLANK>')):  # empty newline
+            out += 'echo ""\n'
         else:
-            out += 'echo -e "{}"\n'.format(colorize('\$ ' + s))
-        out += '{}\n'.format(cmd)
+            if (cmd.startswith('echo')):  # prevent "double echo"
+                out += 'echo -e -n "{} "\n'.format(colorize('\$ echo'))
+            else:
+                out += 'echo -e "{}"\n'.format(colorize('\$ ' + s))
+            out += '{}\n'.format(cmd)
     with open(TEMP_SCRIPT_FILE, 'w') as fh:
         fh.write(out)
     os.chmod(TEMP_SCRIPT_FILE, 0o777)
