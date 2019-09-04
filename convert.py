@@ -136,7 +136,7 @@ def main(argv=None):
         cmd += ' > {}'.format(tmp_journal_filename)
         os.system(cmd)
 
-        # For every trannsaction, add the correspinding CSV file line to the
+        # For every trannsaction, add the corresponding CSV file line to the
         # generated journal file.
         new_lines = []
         with open(tmp_journal_filename, 'r') as fh:
