@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 
 import re
 import sys
@@ -95,7 +95,7 @@ def main(argv=None):
 
         # Modify CSV file (delete/modify lines, add header, ...).
         _, tmp_csv_filename = tempfile.mkstemp()
-        with open(csv_filename) as csv_fh:
+        with open(csv_filename, errors='replace') as csv_fh:
             lines = csv_fh.readlines()
             lines = [re.sub(r'[^\x00-\x7F]+', '_', l) for l in lines]
             lines = lines[int(acfg['ignored_header_lines']):]
@@ -125,7 +125,7 @@ def main(argv=None):
         cmd += ' --generated'  # pin automated transactions
         cmd += ' {}'.format(acfg['ledger_args'])
         cmd += ' | sed -e "s/\(^\s\+.*\s\+\)\([-0-9\.]\+\)$/\\1{}\\2/g"'.\
-            format(acfg['currency'].encode('utf8'))
+            format(acfg['currency'].encode('utf8').decode())
         try:
             cmd += ' | sed -e "s/Expenses:Unknown/{}/g"'.\
                 format(acfg['expenses_unknown'])
@@ -139,7 +139,7 @@ def main(argv=None):
         # For every trannsaction, add the correspinding CSV file line to the
         # generated journal file.
         new_lines = []
-        with open(tmp_journal_filename, 'a+') as fh:
+        with open(tmp_journal_filename, 'r') as fh:
             i = 0
             for line in fh.readlines():
                 new_lines.append(line)
