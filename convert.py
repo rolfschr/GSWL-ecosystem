@@ -121,7 +121,7 @@ def main(argv=None):
         # Use Ledger to convert the modified CSV file.
         cmd = 'ledger -f {} convert {}'.format(LEDGER_FILE, tmp_csv_filename)
         cmd += ' --input-date-format "{}"'.format(acfg['date_format'])
-        cmd += ' --account {}'.format(account_colon)
+        cmd += ' --account "{}"'.format(account_colon)
         cmd += ' --generated'  # pin automated transactions
         cmd += ' {}'.format(acfg['ledger_args'])
         cmd += ' | sed -e "s/\(^\s\+.*\s\+\)\([-0-9\.]\+\)$/\\1{}\\2/g"'.\
