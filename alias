@@ -28,8 +28,9 @@ alias ledconv="${LEDGER_ECOSYSTEM_DIR}/convert.py"
 # When the latter are named consistently (ex:"apr2044_bank1.csv,
 # may2044_bank1.csv") one can use simple aliases to always convert the latest
 # CSV files. (Assuming monthly updates in this case.)
-THIS_AMN=$(date +'%b' | tr '[:upper:]' '[:lower:]') # Abreviated Month Name, e.g. "apr"
-
+# "AMN" = Abreviated Month Name, e.g. "apr"
+# "FST_DOM_XMONTHS_AGO" = First Day Of Month x Months Ago (may be used for
+# specific Ledger reports)
 GNU_DATE=$(date -d 'last year' 2>/dev/null)
 if [[ "$GNU_DATE" == "" ]]; then
   LAST_AMN=$(date -v-1m +'%b' | tr '[:upper:]' '[:lower:]') # "apr"
@@ -43,13 +44,12 @@ else
   FST_DOM_12MONTHS_AGO=`date +"%Y/%m/01" -d "12 months ago"`
 fi
 
-
+THIS_AMN=$(date +'%b' | tr '[:upper:]' '[:lower:]') # "apr"
 THIS_YEAR=$(date +'%Y') # "2044"
 LAST_AMN_AND_YEAR="${LAST_AMN}${THIS_YEAR}" # "apr2044"
 if [[ "$LAST_AMN" == "dec" ]]; then
     LAST_AMN_AND_YEAR="${LAST_AMN}${LAST_YEAR}"
 fi
-# First Day Of Month x Months Ago (may be used for specific Ledger reports)
 
 function ledxact () {
     FILE=misc.tmp.txt
