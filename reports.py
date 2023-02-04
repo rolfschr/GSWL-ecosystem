@@ -1,3 +1,5 @@
+# pylint: skip-file
+# flake8: noqa
 #!/usr/bin/env python3
 """
 Usage:
