@@ -121,6 +121,32 @@ def get_Lines_From_File(file_name: str) -> List[str]:
     return file_lines
 
 
+# For pre and post processing (and perhaps the conversion itself), we want to have the definitions of which functions to call (and in
+# what order) listed in a file. So the class/function would need to read the file, call the function names with the appropriate input
+# variables. We can examine python functions to see which variables are present, or you can unpack a dictionary into every function
+# and have each function only use (and update) the variables it needs. Don't really like either option - a bit messy
+# Another messyish idea would be the file that stores the function names also includes the variables that function needs and returns.
+
+def replace_non_ascii_chars(lines: List[str]) -> List[str]:
+    """
+    Preprocessing function to replace non-ascii characters with an underscore
+    """
+    # NOTE Which is more efficient, list compresssion like this or using 'map' function
+    return [re.sub(r'[^\x00-\x7F]+', '_', line) for line in lines]
+
+
+def fix_csv_header(lines: List[str], ignore_header_lines: int = 0, replacement_header: str = None) -> List[str]:
+    """
+    Function to remove a number of header lines from csv lines then add a new header
+    """
+    lines = lines[ignore_header_lines:]
+
+    if replacement_header:
+        lines.insert(0, replacement_header)
+
+    return lines
+
+
 def process_csv_lines(lines: List[str], account_config: Dict) -> Tuple[List[str], List[str], List[str]]:
     """
     Function to process the csv lines before they are used for the conversion.
@@ -129,22 +155,30 @@ def process_csv_lines(lines: List[str], account_config: Dict) -> Tuple[List[str]
     """
 
     # pre-processing of csv_lines
-    lines = [re.sub(r'[^\x00-\x7F]+', '_', line) for line in lines]
-    lines = lines[int(account_config['ignored_header_lines']):]
-    lines.insert(0, account_config['convert_header'])
+    new_lines = replace_non_ascii_chars(lines)
+    new_lines = fix_csv_header(new_lines, int(account_config.get('ignored_header_lines', 0)), account_config.get('convert_header', None))
 
     # Nothing is ignored by default.
-    ignored_lines: List[str] = []
-    if 'ignore_transactions' in account_config:
-        lines, ignored_lines = \
-            ignore_transactions(lines, account_config['ignore_transactions'])
 
+    # TODO This is also 'preprocessing' of the csv lines. Already have functions for this though!
+    # Commented this out to confirm that single liner operates correctly. Remove old code once you have tested this thoroughly
+    # ignored_lines: List[str] = []
+    # if 'ignore_transactions' in account_config:
+    #   lines, ignored_lines = \
+    #        ignore_transactions(lines, account_config['ignore_transactions'])
+
+    # if there is no 'ignore_transactions' in the dict, the ignore transaction functions should just return (lines, [])
+    new_lines, ignored_lines = ignore_transactions(new_lines, account_config.get('ignore_transactions', None))
+
+    # Again, remove this when you have confirmed the one liner operate correctly.
     # Nothing is modfied by default.
-    if 'modify_transactions' in account_config:
-        _, (lines, modified_lines) = \
-            modify_transactions(lines, account_config['modify_transactions'])
+    # if 'modify_transactions' in account_config:
+    #    _, (lines, modified_lines) = \
+    #        modify_transactions(lines, account_config['modify_transactions'])
 
-    return lines, modified_lines, ignored_lines
+    new_lines, _ = modify_transactions(new_lines, account_config.get('modify_transactions', None))
+
+    return lines, new_lines, ignored_lines
 
 
 def get_Processed_Csv_Lines(csv_filename: str,
@@ -155,7 +189,6 @@ def get_Processed_Csv_Lines(csv_filename: str,
     """
     original_lines = get_Lines_From_File(csv_filename)
 
-    # NOTE: Modified lines variable contains the raw lines, doesn't it? So you probably don't need to save and return raw lines separately
     original_lines, modified_lines, ignored_lines = process_csv_lines(original_lines, account_config)
 
     return original_lines, modified_lines, ignored_lines
@@ -186,6 +219,8 @@ def create_Ledger_Convert_Command(csv_filename: str,
     cmd += ' {}'.format(additional_ledger_args)
 
     # TODO: Now that I'm using python so much, I should change these sed calls to be python regex substitutions...
+    # As added incentive, the two sed commands are really doing 'post-processing' of the converted lines - something
+    # you now have a modular place for.
     cmd += ' | sed -e "s/\(^\s\+.*\s\+\)\([-0-9\.]\+\)$/\\1{}\\2/g"'.\
         format(currency.encode('utf8').decode())  # noqa: W605
     try:
@@ -226,15 +261,12 @@ def create_Ledger_Convert_Command_From_Config(csv_filename: str,  # pylint: disa
     return create_Ledger_Convert_Command(**convert_dictionary)
 
 
-def process_Converted_Transactions(transaction_lines: List[str],
-                                   original_lines: List[str],
-                                   modified_lines: List[str],
-                                   ignored_lines: List[str]) -> List[str]:
+def insert_Csv_Lines_into_Transactions(transaction_lines: List[str], original_csv_lines: List[str], modified_csv_lines: List[str]) -> List[str]:
     """
-    Performs post-processing on the generated ledger format transactions.
-    Returns the final journal lines from the conversion as a list of strings.
+    Inserts the CSV lines (original and modified) into the journal formatted transaction lines and returns the processed lines.
+    Needs the original csv lines and the modified csv lines to be in the same transaction order as the converted transaction lines.
     """
-    # For every trannsaction, add the corresponding CSV file line to the
+
     # generated journal file.
     new_lines = []
     i = 0
@@ -247,18 +279,40 @@ def process_Converted_Transactions(transaction_lines: List[str],
             # transactions:
             new_lines.append('    ; CSV data:\n')
             new_lines.append('    ; from : {}\n'.
-                             format(modified_lines[i].strip()))
+                             format(modified_csv_lines[i].strip()))
             new_lines.append('    ; (raw): {}\n'.
-                             format(original_lines[i].strip()))
+                             format(original_csv_lines[i].strip()))
             i += 1
 
-    # Append the list of ignored transactions to the converted transaction lines
-    if len(ignored_lines) > 0:
-        new_lines.append('')
-        new_lines.append('; Attention: The following lines were ignored:')
-        new_lines.extend(ignored_lines)
+    return new_lines
 
-    # TODO Add in the possibility to sort by date (now that meta data has been correctly (and fully)added.
+
+def add_ignored_csv_lines(transaction_lines: List[str], ignored_csv_lines: List[str]) -> List[str]:
+    """
+    Appends the ignored csv lines (transactions) to the end of the converted transaction lines
+    This is part of the generic post-processing done to the journal format transaction lines.
+    """
+
+    if len(ignored_csv_lines) > 0:
+        transaction_lines.append('\n\n; Attention: The following lines were ignored:\n')
+        transaction_lines.extend(ignored_csv_lines)
+
+    return transaction_lines
+
+
+def process_Converted_Transactions(transaction_lines: List[str],
+                                   original_lines: List[str],
+                                   modified_lines: List[str],
+                                   ignored_lines: List[str]) -> List[str]:
+    """
+    Performs post-processing on the generated ledger format transactions.
+    Returns the final journal lines from the conversion as a list of strings.
+    """
+    new_lines = insert_Csv_Lines_into_Transactions(transaction_lines, original_lines, modified_lines)
+
+    new_lines = add_ignored_csv_lines(new_lines, ignored_lines)
+
+    # TODO Add in the possibility to sort by date (now that meta data has been correctly (and fully) added.
     # TODO We can even limit by date rather than using regex to ignore old transactions.
 
     return new_lines
@@ -283,24 +337,24 @@ def main(argv=None):
 
     _, tmp_journal_filename = tempfile.mkstemp()
 
-    # TODO Would like to save this to the tmp folder in due course to make it easier for people to see what the processed csv becomes
+    # TODO Would like to save this to the tmp folder in due course to make it easier for people to see what the processed csv becomes # to be honest, need to write some code so that csv filenames and journalfile names can be identified easily based on the account # config parameters and the current date. So you could define a template file and a periodicity (eg monthly) and then you would # know what the previous period's csvfilename and tmp-journal filename would be based on that template and the previous month number
     with open(tmp_csv_filename, 'w') as f:
-        f.write('\n'.join([line for _, line in modified_lines]))
+        f.write('\n'.join(modified_lines))
 
     # Use ledger to convert the lines to ledger format
     cmd = create_Ledger_Convert_Command_From_Config(tmp_csv_filename, tmp_journal_filename, account_name, account_config, LEDGER_FILE)
 
     # Run the ledger command
     try:
-        process_result = subprocess.run(cmd, capture_output=True, check=True)
+        process_result = subprocess.run(cmd, capture_output=True, check=True, shell=True, text=True)
     except subprocess.CalledProcessError as e:
-        print(f"Calling the ledger command {cmd} resulted in an error:\n{e}.\nThe stderr pipe text is:\n{process_result.stderr}")
+        print(f"Calling the ledger command {cmd} resulted in an error:\n{e}.\nThe stderr pipe text is:\n{e.stderr}")
 
     converted_lines = process_result.stdout.split('\n')
     converted_lines = process_Converted_Transactions(converted_lines, original_lines, modified_lines, ignored_lines)
 
     # Print to stdout for later use.
-    print('\n'.join(converted_lines))
+    print(''.join(converted_lines))
 
     # TODO This script should really save the final converted output to a file, rather than relying on redirect from standard out.
 
