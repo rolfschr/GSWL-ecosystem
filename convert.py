@@ -8,7 +8,7 @@ import re
 import subprocess
 import sys
 import tempfile
-from typing import Dict, List, Tuple
+from typing import Any, Dict, List, Tuple
 
 try:
     import yaml
@@ -111,6 +111,14 @@ def get_Account_Config(account_name: str, accounts_config: Dict) -> Dict:
     return account_config
 
 
+def save_Lines_To_File(file_name: str, lines: List[str]) -> None:
+    """
+    Simple function to write lines to a file
+    """
+    with open(file_name, 'w') as f:
+        f.write('\n'.join(lines))
+
+
 def get_Lines_From_File(file_name: str) -> List[str]:
     """
     Function to get the lines from a file in a List
@@ -121,7 +129,7 @@ def get_Lines_From_File(file_name: str) -> List[str]:
     return file_lines
 
 
-# For pre and post processing (and perhaps the conversion itself), we want to have the definitions of which functions to call (and in
+# TODO For pre and post processing (and perhaps the conversion itself), we want to have the definitions of which functions to call (and in
 # what order) listed in a file. So the class/function would need to read the file, call the function names with the appropriate input
 # variables. We can examine python functions to see which variables are present, or you can unpack a dictionary into every function
 # and have each function only use (and update) the variables it needs. Don't really like either option - a bit messy
@@ -151,6 +159,7 @@ def process_csv_lines(lines: List[str], account_config: Dict) -> Tuple[List[str]
     """
     Function to process the csv lines before they are used for the conversion.
     In future I will be looking to make this into calling a chain of functions that are defined in config files (ie customisable)
+    Hence why I am refactoring everything in this function so that it can be done with a single function call.
     Returns a tuple containing three lists: (original_lines, modified_lines, ignored_lines)
     """
 
@@ -160,8 +169,7 @@ def process_csv_lines(lines: List[str], account_config: Dict) -> Tuple[List[str]
 
     # Nothing is ignored by default.
 
-    # TODO This is also 'preprocessing' of the csv lines. Already have functions for this though!
-    # Commented this out to confirm that single liner operates correctly. Remove old code once you have tested this thoroughly
+    # TODO Commented this code out to confirm that single liner operates correctly. Remove old code once you have tested this thoroughly
     # ignored_lines: List[str] = []
     # if 'ignore_transactions' in account_config:
     #   lines, ignored_lines = \
@@ -176,6 +184,7 @@ def process_csv_lines(lines: List[str], account_config: Dict) -> Tuple[List[str]
     #    _, (lines, modified_lines) = \
     #        modify_transactions(lines, account_config['modify_transactions'])
 
+    # With no modifications, then it doesn't matter what is returned for 'modified_lines' variable, and the new_lines are just the old lines
     new_lines, _ = modify_transactions(new_lines, account_config.get('modify_transactions', None))
 
     return lines, new_lines, ignored_lines
@@ -195,13 +204,10 @@ def get_Processed_Csv_Lines(csv_filename: str,
 
 
 def create_Ledger_Convert_Command(csv_filename: str,
-                                  tmp_journal_filename: str,
                                   account_name: str,
                                   additional_ledger_args: str = '',
                                   input_date_format: str = '%Y/%m/%d',
-                                  expenses_unknown: str = "Expenses:Unknown",
-                                  conversion_ledger_file: str = LEDGER_FILE,
-                                  currency: str = "$") -> str:
+                                  conversion_ledger_file: str = LEDGER_FILE) -> str:
     """
     Creates a string that is the ledger command needed to perform the conversion
     """
@@ -218,23 +224,11 @@ def create_Ledger_Convert_Command(csv_filename: str,
     cmd += ' --generated'  # pin automated transactions
     cmd += ' {}'.format(additional_ledger_args)
 
-    # TODO: Now that I'm using python so much, I should change these sed calls to be python regex substitutions...
-    # As added incentive, the two sed commands are really doing 'post-processing' of the converted lines - something
-    # you now have a modular place for.
-    cmd += ' | sed -e "s/\(^\s\+.*\s\+\)\([-0-9\.]\+\)$/\\1{}\\2/g"'.\
-        format(currency.encode('utf8').decode())  # noqa: W605
-    try:
-        cmd += ' | sed -e "s/Expenses:Unknown/{}/g"'.\
-            format(expenses_unknown)
-    except KeyError:
-        pass
-
-    cmd += ' > {}'.format(tmp_journal_filename)
     return cmd
 
 
+# TODO Add in a **kwargs to this command so that people can pass in any additional items to add to the ledger command
 def create_Ledger_Convert_Command_From_Config(csv_filename: str,  # pylint: disable=unused-argument
-                                              tmp_journal_filename: str,  # pylint: disable=unused-argument
                                               account_name: str,  # pylint: disable=unused-argument
                                               account_config: Dict,
                                               conversion_ledger_file: str) -> str:  # pylint: disable=unused-argument
@@ -245,11 +239,8 @@ def create_Ledger_Convert_Command_From_Config(csv_filename: str,  # pylint: disa
     variables_required = ['account_name',
                           'csv_filename',
                           'conversion_ledger_file',
-                          'tmp_journal_filename',
-                          'currency',
                           'additional_ledger_args',
-                          'input_date_format',
-                          'expenses_unknown']
+                          'input_date_format']
 
     # use variables passed into this function first (locals), but variables from the account config otherwise.
     # If neither has the value, it shouldn't be in the dictionary so that the default of the function being called is preserved
@@ -259,6 +250,19 @@ def create_Ledger_Convert_Command_From_Config(csv_filename: str,  # pylint: disa
                           if key in local_vars or key in account_config}
 
     return create_Ledger_Convert_Command(**convert_dictionary)
+
+
+def post_process_regex_replacements(journal_lines: List[str], terms_to_search_and_replace: List[Tuple[str, str, str]], account_config: Dict[str, Any]) -> List[str]:
+    """
+    Performs multiple regex replacements to correct aspects of the converted journal.
+    """
+    new_lines = journal_lines.copy()
+
+    for key, pattern, replacement in terms_to_search_and_replace:
+        if key in account_config:
+            new_lines, _ = modify_transactions(new_lines, (pattern, replacement))
+
+    return new_lines
 
 
 def insert_Csv_Lines_into_Transactions(transaction_lines: List[str], original_csv_lines: List[str], modified_csv_lines: List[str]) -> List[str]:
@@ -303,7 +307,8 @@ def add_ignored_csv_lines(transaction_lines: List[str], ignored_csv_lines: List[
 def process_Converted_Transactions(transaction_lines: List[str],
                                    original_lines: List[str],
                                    modified_lines: List[str],
-                                   ignored_lines: List[str]) -> List[str]:
+                                   ignored_lines: List[str],
+                                   account_config: Dict[str, Any]) -> List[str]:
     """
     Performs post-processing on the generated ledger format transactions.
     Returns the final journal lines from the conversion as a list of strings.
@@ -312,9 +317,14 @@ def process_Converted_Transactions(transaction_lines: List[str],
 
     new_lines = add_ignored_csv_lines(new_lines, ignored_lines)
 
+    # Setting up some regex replacements. TODO In due course, I want to move these into the config file similar to how 'modify_transactions' is
+    terms_to_search_and_replace = [('currency', r"\(^\s\+.*\s\+\)\([-0-9\.]\+\)$", f"\\1{str(account_config.get('currency')).encode('utf').decode()}\\2/g"),
+                                   ('expenses_unknown', 'Expenses:Unknown', "{account_config.get('expenses_unknown', None)}")]
+
+    new_lines = post_process_regex_replacements(new_lines, terms_to_search_and_replace, account_config)
+
     # TODO Add in the possibility to sort by date (now that meta data has been correctly (and fully) added.
     # TODO We can even limit by date rather than using regex to ignore old transactions.
-
     return new_lines
 
 
@@ -337,12 +347,15 @@ def main(argv=None):
 
     _, tmp_journal_filename = tempfile.mkstemp()
 
-    # TODO Would like to save this to the tmp folder in due course to make it easier for people to see what the processed csv becomes # to be honest, need to write some code so that csv filenames and journalfile names can be identified easily based on the account # config parameters and the current date. So you could define a template file and a periodicity (eg monthly) and then you would # know what the previous period's csvfilename and tmp-journal filename would be based on that template and the previous month number
+    # TODO Would like to save this to the private tmp folder in due course to make it easier for people to see what the processed csv becomes
+    # to be honest, need to write some code so that csv filenames and journalfile names can be identified easily based on the account
+    # config parameters and the current date. So you could define a template file and a periodicity (eg monthly) and then you would
+    # know what the previous period's csvfilename and tmp-journal filename would be based on that template and the previous month number
     with open(tmp_csv_filename, 'w') as f:
         f.write('\n'.join(modified_lines))
 
     # Use ledger to convert the lines to ledger format
-    cmd = create_Ledger_Convert_Command_From_Config(tmp_csv_filename, tmp_journal_filename, account_name, account_config, LEDGER_FILE)
+    cmd = create_Ledger_Convert_Command_From_Config(tmp_csv_filename, account_name, account_config, LEDGER_FILE)
 
     # Run the ledger command
     try:
@@ -351,12 +364,18 @@ def main(argv=None):
         print(f"Calling the ledger command {cmd} resulted in an error:\n{e}.\nThe stderr pipe text is:\n{e.stderr}")
 
     converted_lines = process_result.stdout.split('\n')
-    converted_lines = process_Converted_Transactions(converted_lines, original_lines, modified_lines, ignored_lines)
+
+    # Post processing
+    converted_lines = process_Converted_Transactions(converted_lines, original_lines, modified_lines, ignored_lines, account_config)
+
+    save_Lines_To_File(tmp_journal_filename, converted_lines)
 
     # Print to stdout for later use.
     print(''.join(converted_lines))
 
-    # TODO This script should really save the final converted output to a file, rather than relying on redirect from standard out.
+    # TODO This script should really save the final converted output to a file in a good location, rather than relying on
+    # redirect from standard out. The line above that saves it to a tmp file gets undone by cleanup below where the file is
+    # deleted
 
     # Cleanup.
     os.remove(tmp_csv_filename)
