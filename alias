@@ -9,13 +9,12 @@ fi
 # --strict          : Warn if account, tag or commodity is unknown.
 # --pedantic        : Abort if account, tag or commodity is unknown.
 # --check-payees    : Warn/abort if payee is unknown.
-# --explicit        : Warn/abort also for cleared transactions
 # --price-db FILE   : Specify the location of the price entry data file.
 # --market          : Report last known market value.
 # --wide            : Cause the default register report to assume a wide screen.
 # --flat            : Do not shouw accounts in a hierarchical tree
 # --pager=less"
-LEDGERARGS="--pedantic --check-payees --price-db prices.txt --market --explicit"
+LEDGERARGS="--pedantic --check-payees --price-db prices.txt --market"
 alias led="ledger -f main.txt ${LEDGERARGS}"
 alias ledp="ledger -f main.txt ${LEDGERARGS} --pager=less"
 alias ledreports="${LEDGER_ECOSYSTEM_DIR}/reports.py"
