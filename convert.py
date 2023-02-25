@@ -149,9 +149,9 @@ def main(argv=None):
                     # can match modified csv lines to the journal's
                     # transactions:
                     new_lines.append('    ; CSV data:\n')
-                    new_lines.append('    ; from : {}\n'.
+                    new_lines.append('    ; from {}\n'.
                                      format(modified_lines[i][1].strip()))
-                    new_lines.append('    ; (raw): {}\n'.
+                    new_lines.append('    ;  raw {}\n'.
                                      format(modified_lines[i][0].strip()))
                     i += 1
         with open(tmp_journal_filename, 'w') as fh:
