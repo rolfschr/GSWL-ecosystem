@@ -17,19 +17,6 @@ $DEBUG && set -euo pipefail
 # Thanks https://stackoverflow.com/a/17805088
 $DEBUG && export PS4='${LINENO}: ' && set -x
 
-## Original
-#LEDGER_ECOSYSTEM_DIR=$(dirname "$_") # needed for later
-#
-## too much
-## Thanks https://stackoverflow.com/a/246128/424301
-#SOURCE=${BASH_SOURCE[0]}
-#while [ -L "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
-#  LEDGER_ECOSYSTEM_DIR=$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )
-#  SOURCE=$(readlink "$SOURCE")
-#  [[ $SOURCE != /* ]] && SOURCE=$DIR/$SOURCE # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
-#done
-#LEDGER_ECOSYSTEM_DIR=$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )
-## Just right
 # http://stackoverflow.com/questions/59895/can-a-bash-script-tell-what-directory-its-stored-in
 LEDGER_ECOSYSTEM_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
