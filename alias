@@ -1,9 +1,38 @@
-#!/bin/bash
+#!/usr/bin/env bash
+# alias file for ledger from Getting Started With Ledger
+# https://github.com/rolfschr/GSWL-ecosystem.git
+#
+# Source this to activate the variables and functions within:
+#    source ./alias
 
-LEDGER_ECOSYSTEM_DIR=$(dirname "$_") # needed for later
-if [[ "$_" == "" && ! -z $BASH ]] ; then
-    LEDGER_ECOSYSTEM_DIR=$(dirname "$BASH_SOURCE")
-fi
+# Debug this with:
+#    DEBUG=true bash ./alias
+# It will echo commands and line numbers.
+DEBUG=${DEBUG:-false}
+
+# When debugging use bash unofficial strict mode
+# See http://redsymbol.net/articles/unofficial-bash-strict-mode/
+$DEBUG && set -euo pipefail
+
+# Thanks https://stackoverflow.com/a/17805088
+$DEBUG && export PS4='${LINENO}: ' && set -x
+
+## Original
+#LEDGER_ECOSYSTEM_DIR=$(dirname "$_") # needed for later
+#
+## too much
+## Thanks https://stackoverflow.com/a/246128/424301
+#SOURCE=${BASH_SOURCE[0]}
+#while [ -L "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
+#  LEDGER_ECOSYSTEM_DIR=$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )
+#  SOURCE=$(readlink "$SOURCE")
+#  [[ $SOURCE != /* ]] && SOURCE=$DIR/$SOURCE # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
+#done
+#LEDGER_ECOSYSTEM_DIR=$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )
+## Just right
+# http://stackoverflow.com/questions/59895/can-a-bash-script-tell-what-directory-its-stored-in
+LEDGER_ECOSYSTEM_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
 
 # This is the main command to invoke Ledger.
 # --strict          : Warn if account, tag or commodity is unknown.
@@ -28,19 +57,19 @@ alias ledconv="${LEDGER_ECOSYSTEM_DIR}/convert.py"
 # When the latter are named consistently (ex:"apr2044_bank1.csv,
 # may2044_bank1.csv") one can use simple aliases to always convert the latest
 # CSV files. (Assuming monthly updates in this case.)
-THIS_AMN=$(date +'%b' | tr '[:upper:]' '[:lower:]') # Abreviated Month Name, e.g. "apr"
+export THIS_AMN=$(date +'%b' | tr '[:upper:]' '[:lower:]') # Abreviated Month Name, e.g. "apr"
 
-GNU_DATE=$(date -d 'last year' 2>/dev/null)
+GNU_DATE=$(date -d 'last year' 2>/dev/null) || true
 if [[ "$GNU_DATE" == "" ]]; then
   LAST_AMN=$(date -v-1m +'%b' | tr '[:upper:]' '[:lower:]') # "apr"
   LAST_YEAR=$(date -v-1y +'%Y') # "2044"
-  FST_DOM_6MONTHS_AGO=`date -v-6m +"%Y/%m/01"`
-  FST_DOM_12MONTHS_AGO=`date -v-12m +"%Y/%m/01"`
+  FST_DOM_6MONTHS_AGO=$(date -v-6m +"%Y/%m/01")
+  FST_DOM_12MONTHS_AGO=$(date -v-12m +"%Y/%m/01")
 else
   LAST_AMN=$(date +'%b' -d 'last month' | tr '[:upper:]' '[:lower:]') # "apr"
   LAST_YEAR=$(date +'%Y' -d 'last year') # "2044"
-  FST_DOM_6MONTHS_AGO=`date +"%Y/%m/01" -d "6 months ago"`
-  FST_DOM_12MONTHS_AGO=`date +"%Y/%m/01" -d "12 months ago"`
+  FST_DOM_6MONTHS_AGO=$(date +"%Y/%m/01" -d "6 months ago")
+  FST_DOM_12MONTHS_AGO=$(date +"%Y/%m/01" -d "12 months ago")
 fi
 
 
@@ -50,6 +79,7 @@ if [[ "$LAST_AMN" == "dec" ]]; then
     LAST_AMN_AND_YEAR="${LAST_AMN}${LAST_YEAR}"
 fi
 # First Day Of Month x Months Ago (may be used for specific Ledger reports)
+export THIS_YEAR LAST_AMN LAST_YEAR LAST_AMN_AND_YEAR FST_DOM_6MONTHS_AGO FST_DOM_12MONTHS_AGO
 
 function ledxact () {
     FILE=misc.tmp.txt
@@ -140,4 +170,4 @@ alias lmmake="cat \$(listTmpFiles) > $ATMPFILE && ledger $LEDGERARGS -f $ATMPFIL
 alias lmclean="rm ./tmp/*"
 
 # Source this file in the current working directory
-source alias.local 2>/dev/null
+[[ -f alias.local ]] && source alias.local || true
