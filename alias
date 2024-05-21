@@ -97,7 +97,7 @@ function csvConvert () {
     BASENAME=$(basename "${CSVFILE}")
     TMPFILE=./tmp/${BASENAME}.tmp
     cp "${TMPFILE}" "${TMPFILE}.bak" 2>/dev/null
-    ledconv "${ACCTOUNT}" "${CSVFILE}" | tee "${TMPFILE}" | less
+    ledconv "${ACCTOUNT}" "${CSVFILE}" | tee "${TMPFILE}" | less -i
 }
 
 function ledplot () {
