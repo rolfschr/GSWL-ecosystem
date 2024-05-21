@@ -139,23 +139,25 @@ def main(argv=None):
         # For every trannsaction, add the corresponding CSV file line to the
         # generated journal file.
         new_lines = []
+        new_lines.append("; vim: filetype=ledger")
+        new_lines.append("; vim: set ts=8 shiftwidth=4 tw=0 smarttab expandtab")
         with open(tmp_journal_filename, 'r') as fh:
             i = 0
             for line in fh.readlines():
-                new_lines.append(line)
+                new_lines.append(line.rstrip())
                 if (RE_LEDGER_FST_LINE_TRANSACTION.match(line)):
                     # Assuming that the transactions in the journal file have
                     # the same order as the transactions in the csv file, we
                     # can match modified csv lines to the journal's
                     # transactions:
-                    new_lines.append('    ; CSV data:\n')
-                    new_lines.append('    ; from {}\n'.
+                    new_lines.append('    ; CSV data:')
+                    new_lines.append('    ; from {}'.
                                      format(modified_lines[i][1].strip()))
-                    new_lines.append('    ;  raw {}\n'.
+                    new_lines.append('    ;  raw {}'.
                                      format(modified_lines[i][0].strip()))
                     i += 1
         with open(tmp_journal_filename, 'w') as fh:
-            fh.write(''.join(new_lines))
+            fh.write('\n'.join(new_lines))
 
         # Append the list of ignored transactions to the generated journal
         # file.
