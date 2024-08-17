@@ -132,10 +132,20 @@ plot \"-\" using 1:2 with lines
 # actual journal.
 ATMPFILE="/tmp/lmall.tmp.txt" # used to store all postings from all tmp text files
 DTMPFILE="/tmp/lmsorted.tmp.txt" # used to store the same as above, but sorted by date
-# This alias merges all tmp Ledger files, sorts them by date, and appends them
+# This function merges all tmp Ledger files, sorts them by date, and appends them
 # to the main journal.txt:
 #todo: include funzt nicht im subdir :/
-alias lmmake="cat \$(listTmpFiles) > $ATMPFILE && ledger $LEDGERARGS -f $ATMPFILE --sort 'd' print > $DTMPFILE && git checkout journal.txt && (echo ' '; cat $DTMPFILE) >> journal.txt && less $DTMPFILE && rm $ATMPFILE $DTMPFILE"
+#alias lmmake="(git diff --exit-code journal.txt || echo 'journal is not committed!') && cat \$(listTmpFiles) > $ATMPFILE && ledger $LEDGERARGS -f $ATMPFILE --sort 'd' print > $DTMPFILE && git checkout journal.txt && (echo ' '; cat $DTMPFILE) >> journal.txt && less -i $DTMPFILE && rm $ATMPFILE $DTMPFILE"
+function lmmake () {
+  if ! git diff --exit-code journal.txt >/dev/null; then
+    read -p "journal.txt is modified. Remove changes? [y/N] " -n 1 -r
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+      cat $(listTmpFiles) > $ATMPFILE && ledger $LEDGERARGS -f $ATMPFILE --sort 'd' print > $DTMPFILE && git checkout journal.txt && (echo ' '; cat $DTMPFILE) >> journal.txt && less -i $DTMPFILE && rm $ATMPFILE $DTMPFILE
+    fi
+  fi
+#
+}
+
 alias lmclean="rm ./tmp/*"
 
 # Source this file in the current working directory
