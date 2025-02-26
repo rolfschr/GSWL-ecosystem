@@ -137,11 +137,12 @@ DTMPFILE="/tmp/lmsorted.tmp.txt" # used to store the same as above, but sorted b
 #todo: include funzt nicht im subdir :/
 #alias lmmake="(git diff --exit-code journal.txt || echo 'journal is not committed!') && cat \$(listTmpFiles) > $ATMPFILE && ledger $LEDGERARGS -f $ATMPFILE --sort 'd' print > $DTMPFILE && git checkout journal.txt && (echo ' '; cat $DTMPFILE) >> journal.txt && less -i $DTMPFILE && rm $ATMPFILE $DTMPFILE"
 function lmmake () {
+  REPLY=y
   if ! git diff --exit-code journal.txt >/dev/null; then
-    read -p "journal.txt is modified. Remove changes? [y/N] " -n 1 -r
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
-      cat $(listTmpFiles) > $ATMPFILE && ledger $LEDGERARGS -f $ATMPFILE --sort 'd' print > $DTMPFILE && git checkout journal.txt && (echo ' '; cat $DTMPFILE) >> journal.txt && less -i $DTMPFILE && rm $ATMPFILE $DTMPFILE
-    fi
+    read -p "journal.txt is modified. Remove changes? [y/N]" -n 1 -r
+  fi
+  if [[ $REPLY =~ ^[Yy]$ ]]; then
+    cat $(listTmpFiles) > $ATMPFILE && ledger $LEDGERARGS -f $ATMPFILE --sort 'd' print > $DTMPFILE && git checkout journal.txt && (echo ' '; cat $DTMPFILE) >> journal.txt && less -i $DTMPFILE && rm $ATMPFILE $DTMPFILE
   fi
 #
 }
