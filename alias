@@ -1,8 +1,8 @@
 #!/bin/bash
 
 LEDGER_ECOSYSTEM_DIR=$(dirname "$_") # needed for later
-if [[ "$_" == "" && ! -z $BASH ]] ; then
-    LEDGER_ECOSYSTEM_DIR=$(dirname "$BASH_SOURCE")
+if [[ "$_" == "" && ! -z $BASH ]]; then
+  LEDGER_ECOSYSTEM_DIR=$(dirname "$BASH_SOURCE")
 fi
 
 # This is the main command to invoke Ledger.
@@ -15,6 +15,7 @@ fi
 # --flat            : Do not shouw accounts in a hierarchical tree
 # --pager=less"
 LEDGERARGS="--pedantic --check-payees --price-db prices.txt --market"
+LEDGERARGS="--pedantic                --price-db prices.txt --market"
 alias led="ledger -f main.txt ${LEDGERARGS}"
 alias ledp="ledger -f main.txt ${LEDGERARGS} --pager=less"
 alias ledreports="${LEDGER_ECOSYSTEM_DIR}/reports.py"
@@ -32,38 +33,38 @@ alias ledconv="${LEDGER_ECOSYSTEM_DIR}/convert.py"
 # specific Ledger reports)
 GNU_DATE=$(date -d 'last year' 2>/dev/null)
 if [[ "$GNU_DATE" == "" ]]; then
-  LAST_AMN=$(date -v-1m +'%b' | tr '[:upper:]' '[:lower:]') # "apr"
-  LAST_YEAR=$(date -v-1y +'%Y') # "2044"
-  FST_DOM_6MONTHS_AGO=`date -v-6m +"%Y/%m/01"`
-  FST_DOM_12MONTHS_AGO=`date -v-12m +"%Y/%m/01"`
+  export LAST_AMN=$(date -v-1m +'%b' | tr '[:upper:]' '[:lower:]') # "apr"
+  export LAST_YEAR=$(date -v-1y +'%Y')                             # "2044"
+  export FST_DOM_6MONTHS_AGO=$(date -v-6m +"%Y/%m/01")
+  export FST_DOM_12MONTHS_AGO=$(date -v-12m +"%Y/%m/01")
 else
-  LAST_AMN=$(date +'%b' -d 'last month' | tr '[:upper:]' '[:lower:]') # "apr"
-  LAST_YEAR=$(date +'%Y' -d 'last year') # "2044"
-  FST_DOM_6MONTHS_AGO=`date +"%Y/%m/01" -d "6 months ago"`
-  FST_DOM_12MONTHS_AGO=`date +"%Y/%m/01" -d "12 months ago"`
+  export LAST_AMN=$(date +'%b' -d 'last month' | tr '[:upper:]' '[:lower:]') # "apr"
+  export LAST_YEAR=$(date +'%Y' -d 'last year')                              # "2044"
+  export FST_DOM_6MONTHS_AGO=$(date +"%Y/%m/01" -d "6 months ago")
+  export FST_DOM_12MONTHS_AGO=$(date +"%Y/%m/01" -d "12 months ago")
 fi
 
-THIS_AMN=$(date +'%b' | tr '[:upper:]' '[:lower:]') # "apr"
-THIS_YEAR=$(date +'%Y') # "2044"
-LAST_AMN_AND_YEAR="${LAST_AMN}${THIS_YEAR}" # "apr2044"
+export THIS_AMN=$(date +'%b' | tr '[:upper:]' '[:lower:]') # "apr"
+THIS_YEAR=$(date +'%Y')                                    # "2044"
+export LAST_AMN_AND_YEAR="${LAST_AMN}${THIS_YEAR}"         # "apr2044"
 if [[ "$LAST_AMN" == "dec" ]]; then
-    LAST_AMN_AND_YEAR="${LAST_AMN}${LAST_YEAR}"
+  LAST_AMN_AND_YEAR="${LAST_AMN}${LAST_YEAR}"
 fi
 
-function ledxact () {
-    FILE=misc.tmp.txt
-    #ledger xact 2004/4/9 viva food 11 tips 2.50
-    X=$(led xact "$@")
-    echo "$X"
-    if [[ "$SHELL" =~ ^.*zsh$ ]]; then
-        vared -p "Add to $FILE? [Y/n] " -c A
-    elif [[ "$SHELL" =~ ^.*bash$ ]]; then
-        read -e -p "Add to $FILE? [Y/n] " A
-    fi
-    if [[ -z "${A}" || "${A}" == "y" || "${A}" == "Y" ]]; then
-        echo -e "\n$X" >> $FILE
-        echo "Done."
-    fi
+function ledxact() {
+  FILE=misc.tmp.txt
+  #ledger xact 2004/4/9 viva food 11 tips 2.50
+  X=$(led xact "$@")
+  echo "$X"
+  if [[ "$SHELL" =~ ^.*zsh$ ]]; then
+    vared -p "Add to $FILE? [Y/n] " -c A
+  elif [[ "$SHELL" =~ ^.*bash$ ]]; then
+    read -e -p "Add to $FILE? [Y/n] " A
+  fi
+  if [[ -z "${A}" || "${A}" == "y" || "${A}" == "Y" ]]; then
+    echo -e "\n$X" >>$FILE
+    echo "Done."
+  fi
 }
 
 #function nMonthsAgo () {
@@ -73,78 +74,80 @@ function ledxact () {
 #    date +"%b %Y" -d "$1 months ago"
 #}
 
-
-function ledbalper () {
-    # Mnemonic:
-    # "led[ger] bal[ance] [per]centage"
-    # Outputs the usual balance report with an additional percentage column.
-    # If multiple currencies are used, they must be convertable.
-    # Ex:
-    # ledbalper -p "this year" Income
-    # ledbalper -p "this year" Income --flat --sort "T"
-    # ledbalper -X \$ Income:Investments
-    TOTAL=$(led bal ${@//--flat/} -n --format "%(quantity(display_total))\n" | tail -n 1)
-    led bal $@ --format "%(ansify_if(justify(scrub(display_total), 20, 20 + int(prepend_width), true, color), bold if should_bold)) %(ansify_if(justify(scrub(percent(to_amount(display_total), $TOTAL)), 10, 10 + int(prepend_width), true, color), bold if should_bold)) %(!options.flat ? depth_spacer : \"\") %-(ansify_if(ansify_if(partial_account(options.flat), blue if color), bold if should_bold))\n%/%\$1 %\$2\n%/%(prepend_width ? \" \" * int(prepend_width) : \"\")-------------------------------\n"
+function ledbalper() {
+  # Mnemonic:
+  # "led[ger] bal[ance] [per]centage"
+  # Outputs the usual balance report with an additional percentage column.
+  # If multiple currencies are used, they must be convertable.
+  # Ex:
+  # ledbalper -p "this year" Income
+  # ledbalper -p "this year" Income --flat --sort "T"
+  # ledbalper -X \$ Income:Investments
+  TOTAL=$(led bal ${@//--flat/} -n --format "%(quantity(display_total))\n" | tail -n 1)
+  led bal $@ --format "%(ansify_if(justify(scrub(display_total), 20, 20 + int(prepend_width), true, color), bold if should_bold)) %(ansify_if(justify(scrub(percent(to_amount(display_total), $TOTAL)), 10, 10 + int(prepend_width), true, color), bold if should_bold)) %(!options.flat ? depth_spacer : \"\") %-(ansify_if(ansify_if(partial_account(options.flat), blue if color), bold if should_bold))\n%/%\$1 %\$2\n%/%(prepend_width ? \" \" * int(prepend_width) : \"\")-------------------------------\n"
 }
 
-function listTmpFiles () {
-    echo "meta.txt $(ls ./tmp/${LAST_AMN}*.tmp) misc.tmp.txt" | tr '\n' ' '
+function listTmpFiles() {
+  echo "meta.txt $(ls ./tmp/${LAST_AMN}*.tmp) misc.tmp.txt" | tr '\n' ' '
 }
 
-function csvConvert () {
-    ACCTOUNT=$1
-    CSVFILE=$2
-    BASENAME=$(basename "${CSVFILE}")
-    TMPFILE=./tmp/${BASENAME}.tmp
-    cp "${TMPFILE}" "${TMPFILE}.bak" 2>/dev/null
-    ledconv "${ACCTOUNT}" "${CSVFILE}" | tee "${TMPFILE}" | less -i
+function csvConvert() {
+  ACCTOUNT=$1
+  CSVFILE=$2
+  BASENAME=$(basename "${CSVFILE}")
+  TMPFILE=./tmp/${BASENAME}.tmp
+  cp "${TMPFILE}" "${TMPFILE}.bak" 2>/dev/null
+  ledconv "${ACCTOUNT}" "${CSVFILE}" | tee "${TMPFILE}" | less -i
 }
 
-function ledplot () {
-    # This has been shamelessly stolen from Ledger's source code (contrib
-    # subfolder).
+function ledplot() {
+  # This has been shamelessly stolen from Ledger's source code (contrib
+  # subfolder).
 
-    # This script facilities plotting of a ledger register report.  If you
-    # use OS/X, and have AquaTerm installed, you will probably want to set
-    # LEDGER_TERM to "aqua".
-    #
-    # Examples of use:
-    #
-    #   report -j -M reg food            # plot monthly food costs
-    #   report -J reg checking           # plot checking account balance
-    if [ -z "$LEDGER_TERM" ]; then
-      LEDGER_TERM="x11 persist"
-    fi
-    HEADER="set terminal $LEDGER_TERM
+  # This script facilities plotting of a ledger register report.  If you
+  # use OS/X, and have AquaTerm installed, you will probably want to set
+  # LEDGER_TERM to "aqua".
+  #
+  # Examples of use:
+  #
+  #   report -j -M reg food            # plot monthly food costs
+  #   report -J reg checking           # plot checking account balance
+  if [ -z "$LEDGER_TERM" ]; then
+    LEDGER_TERM="x11 persist"
+  fi
+  HEADER="set terminal $LEDGER_TERM
 set xdata time
 set timefmt \"%Y-%m-%d\"
 plot \"-\" using 1:2 with lines
 plot \"-\" using 1:2 with lines
 "
-    FILE=/tmp/ledgnuplot
-    echo "$HEADER" > $FILE
-    led "$@" >> $FILE
-    gnuplot < $FILE
+  FILE=/tmp/ledgnuplot
+  echo "$HEADER" >$FILE
+  led "$@" >>$FILE
+  gnuplot <$FILE
 }
 
 # Once all CSV files are converted AND misc.tmp.txt contains manually added
 # ledger journal entries, everything needs to be merged and appended to the
 # actual journal.
-ATMPFILE="/tmp/lmall.tmp.txt" # used to store all postings from all tmp text files
+ATMPFILE="/tmp/lmall.tmp.txt"    # used to store all postings from all tmp text files
 DTMPFILE="/tmp/lmsorted.tmp.txt" # used to store the same as above, but sorted by date
 # This function merges all tmp Ledger files, sorts them by date, and appends them
 # to the main journal.txt:
 #todo: include funzt nicht im subdir :/
 #alias lmmake="(git diff --exit-code journal.txt || echo 'journal is not committed!') && cat \$(listTmpFiles) > $ATMPFILE && ledger $LEDGERARGS -f $ATMPFILE --sort 'd' print > $DTMPFILE && git checkout journal.txt && (echo ' '; cat $DTMPFILE) >> journal.txt && less -i $DTMPFILE && rm $ATMPFILE $DTMPFILE"
-function lmmake () {
+function lmmake() {
   REPLY=y
   if ! git diff --exit-code journal.txt >/dev/null; then
     read -p "journal.txt is modified. Remove changes? [y/N]" -n 1 -r
   fi
   if [[ $REPLY =~ ^[Yy]$ ]]; then
-    cat $(listTmpFiles) > $ATMPFILE && ledger $LEDGERARGS -f $ATMPFILE --sort 'd' print > $DTMPFILE && git checkout journal.txt && (echo ' '; cat $DTMPFILE) >> journal.txt && less -i $DTMPFILE && rm $ATMPFILE $DTMPFILE
+    cat $(listTmpFiles) >$ATMPFILE && ledger $LEDGERARGS -f $ATMPFILE --sort 'd' print >$DTMPFILE && git checkout journal.txt && (
+      echo ' '
+      cat $DTMPFILE
+    ) >>journal.txt && less -i $DTMPFILE && rm $ATMPFILE $DTMPFILE
   fi
-#
+  #
 }
 
 alias lmclean="rm ./tmp/*"
