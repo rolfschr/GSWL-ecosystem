@@ -133,8 +133,10 @@ def main(argv=None):
         cmd += ' --account "{}"'.format(account_colon)
         cmd += " --generated"  # pin automated transactions
         cmd += " {}".format(acfg["ledger_args"])
-        cmd += ' | sed -e "s/\(^\s\+.*\s\+\)\([-0-9\.]\+\)$/\\1{}\\2/g"'.format(
-            acfg["currency"].encode("utf8").decode()
+        cmd += (
+            ' | sed -e "s/\\(^\\s\\+.*\\s\\+\\)\\([-0-9\\.]\\+\\)$/\\1{}\\2/g"'.format(
+                acfg["currency"].encode("utf8").decode()
+            )
         )
         try:
             cmd += ' | sed -e "s/Expenses:Unknown/{}/g"'.format(
